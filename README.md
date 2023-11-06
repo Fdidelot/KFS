@@ -1,2 +1,2 @@
 # KFS
-Kernel from scratch school project
+Kernel from scratch school project part 1
