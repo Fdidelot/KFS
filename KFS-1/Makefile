@@ -1,8 +1,8 @@
 NAME = kfs.bin
 NAME_ISO = kfs.iso
-LINKER = linker.ld
+LD_SCRIPT = linker.ld
 
-ISO_DIR = isodir
+ISO_DIR = iso_dir
 
 SRCS =	boot.asm \
 		kernel.asm
@@ -19,27 +19,23 @@ OBJS =	$(OBJ:%=$(OBJS_DIR)/%)
 all: $(NAME) $(NAME_ISO)
 
 $(NAME): $(OBJS)
-	ld -m elf_i386 -T $(LINKER) -o $(NAME) $(OBJS)
+	ld -m elf_i386 -T $(LD_SCRIPT) -o $(NAME) $(OBJS)
 
 $(NAME_ISO): $(NAME)
 	mkdir -p $(ISO_DIR)/boot/grub
 	cp $(NAME) $(ISO_DIR)/boot/$(NAME)
 	cp grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
 	grub-mkrescue -o $(NAME_ISO) $(ISO_DIR)
- 	# if grub-file --is-x86-multiboot $(NAME); then
- 	#   echo "multiboot confirmed"
- 	# else
- 	#   echo "the file is not multiboot"
- 	# fi
-
 
 clean:
 	rm -rf $(OBJS_DIR)
 	rm -rf $(ISO_DIR)
+	rm -f Makefile~
+	rm -f $(SRCS_DIR)/*~
 
 fclean: clean
-	rm $(NAME)
-	rm $(NAME_ISO)
+	rm -f $(NAME)
+	rm -f $(NAME_ISO)
 
 re: fclean all
 
@@ -51,4 +47,7 @@ $(OBJS): | $(OBJS_DIR)
 $(OBJS_DIR):
 	mkdir $(OBJS_DIR)
 
-.PHONY: all clean fclean re
+qemu: all
+	qemu-system-i386 kfs.iso
+
+.PHONY: all clean fclean re qemu

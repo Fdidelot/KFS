@@ -1,8 +1,8 @@
 BITS 32
- 
+
 VGA_WIDTH equ 80
 VGA_HEIGHT equ 25
- 
+
 VGA_COLOR_BLACK equ 0
 VGA_COLOR_BLUE equ 1
 VGA_COLOR_GREEN equ 2
@@ -19,146 +19,148 @@ VGA_COLOR_LIGHT_RED equ 12
 VGA_COLOR_LIGHT_MAGENTA equ 13
 VGA_COLOR_LIGHT_BROWN equ 14
 VGA_COLOR_WHITE equ 15
- 
+
 global kernel_main
 kernel_main:
-    mov dh, VGA_COLOR_LIGHT_GREY
-    mov dl, VGA_COLOR_BLACK
-    call terminal_set_color
-    mov esi, hello_string
-    call terminal_write_string
-    jmp $
- 
+	mov dh, VGA_COLOR_LIGHT_GREY
+	mov dl, VGA_COLOR_BLACK
+	call terminal_set_color
+	mov esi, hello_string
+	call terminal_write_string
+	jmp $
+
  
 ; IN = dl: y, dh: x
 ; OUT = dx: Index with offset 0xB8000 at VGA buffer
 ; Other registers preserved
 terminal_getidx:
-    push ax; preserve registers
+	push ax; preserve registers
  
-    shl dh, 1 ; multiply by two because every entry is a word that takes up 2 bytes
+	shl dh, 1 ; multiply by two because every entry is a word that takes up 2 bytes
  
-    mov al, VGA_WIDTH
-    mul dl
-    mov dl, al
+	mov al, VGA_WIDTH
+	mul dl
+	mov dl, al
  
-    shl dl, 1 ; same
-    add dl, dh
-    mov dh, 0
+	shl dl, 1 ; same
+	add dl, dh
+	mov dh, 0
  
-    pop ax
-    ret
+	pop ax
+	ret
  
 ; IN = dl: bg color, dh: fg color
 ; OUT = none
 terminal_set_color:
-    shl dl, 4
+	shl dl, 4
  
-    or dl, dh
-    mov [terminal_color], dl
- 
- 
-    ret
+	or dl, dh
+	mov [terminal_color], dl
+
+	ret
  
 ; IN = dl: y, dh: x, al: ASCII char
 ; OUT = none
 terminal_putentryat:
-    pusha
-    call terminal_getidx
-    mov ebx, edx
+	pusha
+	call terminal_getidx
+	mov ebx, edx
  
-    mov dl, [terminal_color]
-    mov byte [0xB8000 + ebx], al
-    mov byte [0xB8001 + ebx], dl
+	mov dl, [terminal_color]
+	mov byte [0xB8000 + ebx], al
+	mov byte [0xB8001 + ebx], dl
  
  
-    popa
-    ret
+	popa
+	ret
  
 ; IN = al: ASCII char
 terminal_putchar:
-    mov dx, [terminal_cursor_pos] ; This loads terminal_column at DH, and terminal_row at DL
+	mov dx, [terminal_cursor_pos] ; This loads terminal_column at DH, and terminal_row at DL
+
+	cmp al, 0xA
+	je .new_line
+
+	call terminal_putentryat
  
-    call terminal_putentryat
+	inc dh
+	cmp dh, VGA_WIDTH
+	jne .cursor_moved
  
-    inc dh
-    cmp dh, VGA_WIDTH
-    jne .cursor_moved
+.new_line:
+	mov dh, 0
+	inc dl
+
+	cmp dl, VGA_HEIGHT
+	jne .cursor_moved
  
-    mov dh, 0
-    inc dl
- 
-    cmp dl, VGA_HEIGHT
-    jne .cursor_moved
- 
-    mov dl, 0
- 
+	mov dl, 0
+
+
  
 .cursor_moved:
-    ; Store new cursor position 
-    mov [terminal_cursor_pos], dx
+	; Store new cursor position 
+	mov [terminal_cursor_pos], dx
  
-    ret
+	ret
  
 ; IN = cx: length of string, ESI: string location
 ; OUT = none
 terminal_write:
-    pusha
+	pusha
 .loopy:
  
-    mov al, [esi]
-    call terminal_putchar
+	mov al, [esi]
+	call terminal_putchar
  
-    dec cx
-    cmp cx, 0
-    je .done
+	dec cx
+	cmp cx, 0
+	je .done
  
-    inc esi
-    jmp .loopy
+	inc esi
+	jmp .loopy
  
  
 .done:
-    popa
-    ret
+	popa
+	ret
  
 ; IN = ESI: zero delimited string location
 ; OUT = ECX: length of string
 terminal_strlen:
-    push eax
-    push esi
-    mov ecx, 0
+	push eax
+	push esi
+	mov ecx, 0
 .loopy:
-    mov al, [esi]
-    cmp al, 0
-    je .done
+	mov al, [esi]
+	cmp al, 0
+	je .done
  
-    inc esi
-    inc ecx
+	inc esi
+	inc ecx
  
-    jmp .loopy
- 
- 
+	jmp .loopy
+
 .done:
-    pop esi
-    pop eax
-    ret
+	pop esi
+	pop eax
+	ret
  
 ; IN = ESI: string location
 ; OUT = none
 terminal_write_string:
-    pusha
-    call terminal_strlen
-    call terminal_write
-    popa
-    ret
+	pusha
+	call terminal_strlen
+	call terminal_write
+	popa
+	ret
  
 ; Exercises:
-; - Newline support
 ; - Terminal scrolling when screen is full
 ; Note: 
 ; - The string is looped through twice on printing. 
  
-hello_string db "Hello, kernel World!", 0xA, 0 ; 0xA = line feed
+hello_string db "Hello, kernel World!", 0xA, "Salut", 0 ; 0xA = line feed
  
  
 terminal_color db 0
