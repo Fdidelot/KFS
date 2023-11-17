@@ -25,29 +25,10 @@ kernel_main:
 	mov dh, VGA_COLOR_LIGHT_GREY
 	mov dl, VGA_COLOR_BLACK
 	call terminal_set_color
-	mov esi, hello_string
+	mov esi, header_42
 	call terminal_write_string
 	jmp $
 
- 
-; IN = dl: y, dh: x
-; OUT = dx: Index with offset 0xB8000 at VGA buffer
-; Other registers preserved
-terminal_getidx:
-	push ax; preserve registers
- 
-	shl dh, 1 ; multiply by two because every entry is a word that takes up 2 bytes
- 
-	mov al, VGA_WIDTH
-	mul dl
-	mov dl, al
- 
-	shl dl, 1 ; same
-	add dl, dh
-	mov dh, 0
- 
-	pop ax
-	ret
  
 ; IN = dl: bg color, dh: fg color
 ; OUT = none
@@ -59,18 +40,35 @@ terminal_set_color:
 
 	ret
  
+; IN = dl: y, dh: x
+; OUT = dx: Index with offset 0xB8000 at VGA buffer
+; Other registers preserved
+terminal_getidx:
+	push eax; preserve registers
+
+	xor ebx, ebx
+	mov bl, dh
+	xor dh, dh
+
+	mov eax, VGA_WIDTH
+	mul edx
+
+	add ebx, eax
+	shl ebx, 1
+
+	pop eax
+	ret
+ 
 ; IN = dl: y, dh: x, al: ASCII char
 ; OUT = none
 terminal_putentryat:
 	pusha
 	call terminal_getidx
-	mov ebx, edx
  
 	mov dl, [terminal_color]
 	mov byte [0xB8000 + ebx], al
 	mov byte [0xB8001 + ebx], dl
- 
- 
+
 	popa
 	ret
  
@@ -108,15 +106,15 @@ terminal_putchar:
 ; OUT = none
 terminal_write:
 	pusha
-.loopy:
- 
+	.loopy:
+	
 	mov al, [esi]
-	call terminal_putchar
- 
-	dec cx
-	cmp cx, 0
+
+	cmp al, 0
 	je .done
- 
+
+	call terminal_putchar
+
 	inc esi
 	jmp .loopy
  
@@ -125,32 +123,10 @@ terminal_write:
 	popa
 	ret
  
-; IN = ESI: zero delimited string location
-; OUT = ECX: length of string
-terminal_strlen:
-	push eax
-	push esi
-	mov ecx, 0
-.loopy:
-	mov al, [esi]
-	cmp al, 0
-	je .done
- 
-	inc esi
-	inc ecx
- 
-	jmp .loopy
-
-.done:
-	pop esi
-	pop eax
-	ret
- 
 ; IN = ESI: string location
 ; OUT = none
 terminal_write_string:
 	pusha
-	call terminal_strlen
 	call terminal_write
 	popa
 	ret
@@ -158,11 +134,23 @@ terminal_write_string:
 ; Exercises:
 ; - Terminal scrolling when screen is full
 ; Note: 
-; - The string is looped through twice on printing. 
+; - The string is looped through twice on printing.
  
-hello_string db "Hello, kernel World!", 0xA, "Salut", 0 ; 0xA = line feed
- 
- 
+	header_42    db "         ,--,                 ", 0xA, \
+			"       ,--.'|       ,----,    ", 0xA, \
+			"    ,--,  | :     .'   .' \   ", 0xA, \
+			" ,---.'|  : '   ,----,'    |  ", 0xA, \
+			" ;   : |  | ;   |    :  .  ;  ", 0xA, \
+			" |   | : _' |   ;    |.'  /   ", 0xA, \
+			" :   : |.'  |   `----'/  ;    ", 0xA, \
+			" |   ' '  ; :     /  ;  /     ", 0xA, \
+			" \   \  .'. |    ;  /  /-,    ", 0xA, \
+			"  `---`:  | '   /  /  /.`|    ", 0xA, \
+			"       '  ; | ./__;      :    ", 0xA, \
+			"       |  : ; |   :    .'     ", 0xA, \
+			"       '  ,/  ;   | .'        ", 0xA, \
+			"       '--'   `---'           ", 0xA, 0
+
 terminal_color db 0
  
 terminal_cursor_pos:
