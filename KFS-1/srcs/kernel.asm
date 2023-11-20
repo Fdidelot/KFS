@@ -22,11 +22,17 @@ VGA_COLOR_WHITE equ 15
 
 global kernel_main
 kernel_main:
+	xor eax, eax
+	int 0x16
 	mov dh, VGA_COLOR_LIGHT_GREY
 	mov dl, VGA_COLOR_BLACK
 	call terminal_set_color
-	mov esi, header_42
-	call terminal_write_string
+	;mov esi, header_42
+	;call terminal_write_string
+;
+;	mov edi, buffer
+;	call get_key
+
 	jmp $
 
  
@@ -106,7 +112,7 @@ terminal_putchar:
 ; OUT = none
 terminal_write:
 	pusha
-	.loopy:
+.loopy:
 	
 	mov al, [esi]
 
@@ -130,7 +136,60 @@ terminal_write_string:
 	call terminal_write
 	popa
 	ret
- 
+
+get_key:
+	pusha
+	xor cl, cl
+
+.loopy:
+	mov ah, 0
+	int 0x16 ; wait for keypress
+
+	cmp al, 0X61 ; a pressed?
+	je .key_a
+
+	cmp al, 0X62 ; b pressed?
+	je .key_b
+
+	cmp al, 0X0D ; enter pressed?
+	je .done
+
+	cmp cl, 0X3F ; 63 chars inputted?
+	je .loopy
+
+	mov ah, 0X0E
+	int 0x10 ;print out character
+
+	stosb ; put character in buffer
+	inc cl
+	jmp .loopy
+
+.key_a:
+	mov ah, 0X0E
+	mov al, 0X61
+	int 10h
+	jmp .loopy
+.key_b:
+	mov ah, 0X0E
+	mov al, 0X62
+	int 10h
+	jmp .loopy
+
+.done:
+	mov al, 0
+	stosb
+
+	mov ah, 0X0E
+	mov al, 0X0D ; \r carriage ret
+	int 0X10
+	mov al, 0X0A ; new line
+	int 0X10
+	
+	popa
+	ret
+
+
+
 ; Exercises:
 ; - Terminal scrolling when screen is full
 ; Note: 
@@ -152,6 +211,7 @@ terminal_write_string:
 			"       '--'   `---'           ", 0xA, 0
 
 terminal_color db 0
+buffer db 0
  
 terminal_cursor_pos:
 terminal_column db 0
