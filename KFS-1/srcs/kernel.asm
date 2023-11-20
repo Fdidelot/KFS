@@ -20,16 +20,18 @@ VGA_COLOR_LIGHT_MAGENTA equ 13
 VGA_COLOR_LIGHT_BROWN equ 14
 VGA_COLOR_WHITE equ 15
 
-global kernel_main
+
+	extern keyboard_handler
+	global terminal_putchar
+	global terminal_write_string
+	global kernel_main
 kernel_main:
 	mov dh, VGA_COLOR_LIGHT_GREY
 	mov dl, VGA_COLOR_BLACK
 	call terminal_set_color
 	mov esi, header_42
 	call terminal_write_string
-
 	call keyboard_handler
-
 	jmp $
 
  

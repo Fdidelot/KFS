@@ -5,7 +5,10 @@ LD_SCRIPT = linker.ld
 ISO_DIR = iso_dir
 
 SRCS =	boot.asm \
-		kernel.asm
+		kernel.asm \
+		keyboard.asm \
+		print_debug.asm \
+		print_hexa.asm
 
 NA = nasm
 NAFL = -felf32
