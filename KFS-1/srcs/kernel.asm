@@ -22,16 +22,13 @@ VGA_COLOR_WHITE equ 15
 
 global kernel_main
 kernel_main:
-	xor eax, eax
-	int 0x16
 	mov dh, VGA_COLOR_LIGHT_GREY
 	mov dl, VGA_COLOR_BLACK
 	call terminal_set_color
-	;mov esi, header_42
-	;call terminal_write_string
-;
-;	mov edi, buffer
-;	call get_key
+	mov esi, header_42
+	call terminal_write_string
+
+	call keyboard_handler
 
 	jmp $
 
@@ -113,7 +110,7 @@ terminal_putchar:
 terminal_write:
 	pusha
 .loopy:
-	
+
 	mov al, [esi]
 
 	cmp al, 0
@@ -137,65 +134,31 @@ terminal_write_string:
 	popa
 	ret
 
-get_key:
+keyboard_handler:
 	pusha
-	xor cl, cl
+	xor eax, eax
+	xor esi, esi
 
 .loopy:
-	mov ah, 0
-	int 0x16 ; wait for keypress
 
-	cmp al, 0X61 ; a pressed?
-	je .key_a
+	in al, 0X64
+	test al, 00000001b
+	jz .loopy
+	in al, 0X60
+	mov esi, eax
+	;call terminal_write_string
+	call terminal_putchar
 
-	cmp al, 0X62 ; b pressed?
-	je .key_b
-
-	cmp al, 0X0D ; enter pressed?
-	je .done
-
-	cmp cl, 0X3F ; 63 chars inputted?
-	je .loopy
-
-	mov ah, 0X0E
-	int 0x10 ;print out character
-
-	stosb ; put character in buffer
-	inc cl
 	jmp .loopy
-
-.key_a:
-	mov ah, 0X0E
-	mov al, 0X61
-	int 10h
-	jmp .loopy
-.key_b:
-	mov ah, 0X0E
-	mov al, 0X62
-	int 10h
-	jmp .loopy
-
-.done:
-	mov al, 0
-	stosb
-
-	mov ah, 0X0E
-	mov al, 0X0D ; \r carriage ret
-	int 0X10
-	mov al, 0X0A ; new line
-	int 0X10
-	
 	popa
 	ret
-
-
 
 ; Exercises:
 ; - Terminal scrolling when screen is full
 ; Note: 
 ; - The string is looped through twice on printing.
- 
-	header_42    db "         ,--,                 ", 0xA, \
+
+header_42 db "         ,--,                 ", 0xA, \
 			"       ,--.'|       ,----,    ", 0xA, \
 			"    ,--,  | :     .'   .' \   ", 0xA, \
 			" ,---.'|  : '   ,----,'    |  ", 0xA, \
@@ -208,10 +171,9 @@ get_key:
 			"       '  ; | ./__;      :    ", 0xA, \
 			"       |  : ; |   :    .'     ", 0xA, \
 			"       '  ,/  ;   | .'        ", 0xA, \
-			"       '--'   `---'           ", 0xA, 0
+			"       '--'   `---'           ", 0xA, 258, 0
 
 terminal_color db 0
-buffer db 0
  
 terminal_cursor_pos:
 terminal_column db 0
