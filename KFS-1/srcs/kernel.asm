@@ -136,25 +136,6 @@ terminal_write_string:
 	popa
 	ret
 
-keyboard_handler:
-	pusha
-	xor eax, eax
-	xor esi, esi
-
-.loopy:
-
-	in al, 0X64
-	test al, 00000001b
-	jz .loopy
-	in al, 0X60
-	mov esi, eax
-	;call terminal_write_string
-	call terminal_putchar
-
-	jmp .loopy
-	popa
-	ret
-
 ; Exercises:
 ; - Terminal scrolling when screen is full
 ; Note: 
