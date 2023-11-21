@@ -8,7 +8,8 @@ SRCS =	boot.asm \
 		kernel.asm \
 		keyboard.asm \
 		print_debug.asm \
-		print_hexa.asm
+		print_hexa.asm \
+		screen.asm
 
 NA = nasm
 NAFL = -felf32

@@ -22,14 +22,24 @@ VGA_COLOR_WHITE equ 15
 
 
 	extern keyboard_handler
+	extern add_header
 	global terminal_putchar
 	global terminal_write_string
 	global kernel_main
+
+	section .data
+first_screen:	resb VGA_WIDTH*VGA_HEIGHT
+
+	section .text
 kernel_main:
 	mov dh, VGA_COLOR_LIGHT_GREY
 	mov dl, VGA_COLOR_BLACK
 	call terminal_set_color
+
 	mov esi, header_42
+	call add_header
+	mov esi, eax
+
 	call terminal_write_string
 	call keyboard_handler
 	jmp $
@@ -141,20 +151,20 @@ terminal_write_string:
 ; Note: 
 ; - The string is looped through twice on printing.
 
-header_42 db "         ,--,                 ", 0xA, \
-			"       ,--.'|       ,----,    ", 0xA, \
-			"    ,--,  | :     .'   .' \   ", 0xA, \
-			" ,---.'|  : '   ,----,'    |  ", 0xA, \
-			" ;   : |  | ;   |    :  .  ;  ", 0xA, \
-			" |   | : _' |   ;    |.'  /   ", 0xA, \
-			" :   : |.'  |   `----'/  ;    ", 0xA, \
-			" |   ' '  ; :     /  ;  /     ", 0xA, \
-			" \   \  .'. |    ;  /  /-,    ", 0xA, \
-			"  `---`:  | '   /  /  /.`|    ", 0xA, \
-			"       '  ; | ./__;      :    ", 0xA, \
-			"       |  : ; |   :    .'     ", 0xA, \
-			"       '  ,/  ;   | .'        ", 0xA, \
-			"       '--' ", 258, " `---'           ", 0xA, 0
+header_42 db 26 dup(" "), "        ,--,               ", 0xA, \
+	     26 dup(" "), "      ,--.'|       ,----,  ", 0xA, \
+	     26 dup(" "), "   ,--,  | :     .'   .' \ ", 0xA, \
+	     26 dup(" "), ",---.'|  : '   ,----,'    |", 0xA, \
+	     26 dup(" "), ";   : |  | ;   |    :  .  ;", 0xA, \
+	     26 dup(" "), "|   | : _' |   ;    |.'  / ", 0xA, \
+	     26 dup(" "), ":   : |.'  |   `----'/  ;  ", 0xA, \
+	     26 dup(" "), "|   ' '  ; :     /  ;  /   ", 0xA, \
+	     26 dup(" "), "\   \  .'. |    ;  /  /-,  ", 0xA, \
+	     26 dup(" "), " `---`:  | '   /  /  /.`|  ", 0xA, \
+	     26 dup(" "), "      '  ; | ./__;      :  ", 0xA, \
+	     26 dup(" "), "      |  : ; |   :    .'   ", 0xA, \
+	     26 dup(" "), "      '  ,/  ;   | .'      ", 0xA, \
+	     26 dup(" "), "      '--' ", 258, " `---'         ", 0xA, 0
 
 terminal_color db 0
  

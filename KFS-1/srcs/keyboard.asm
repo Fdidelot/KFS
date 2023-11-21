@@ -2,6 +2,7 @@
 	extern print_debug
 	global keyboard_handler
 
+	section .text
 keyboard_handler:
 	mov ecx, kdbus
 
@@ -19,7 +20,8 @@ keyboard_handler:
 	
 	mov eax, [ecx + eax]
 	push esi
-	call print_debug
+	call terminal_putchar
+;	call print_debug
 	pop esi
 
 .key_release:	
