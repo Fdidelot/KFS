@@ -1,5 +1,12 @@
 	extern terminal_putchar
+	extern fourth_terminal_color
+	extern terminal_color
+	extern terminal_write_string
+	extern backup_pos
 	extern print_debug
+	extern first_screen
+	extern second_screen
+	extern screen_id
 	global keyboard_handler
 
 	section .text
@@ -13,6 +20,14 @@ keyboard_handler:
 	jz .start
 	in al, 0x60 ; read input
 
+	cmp ax, 0x02 ; f1 pressed ?
+	je .load_first_screen
+	cmp ax, 0x03 ; f2 pressed ?
+	je .load_second_screen
+	cmp ax, 0x04 ; f3 pressed ?
+	je .load_third_screen
+	cmp ax, 0x05 ; f4 pressed ?
+	je .load_fourth_screen
 	cmp ax, 0x3A ; Caps Lock pressed?
 	je .press_caps
 	cmp ax, 0x2A ; shift pressed?
@@ -33,6 +48,38 @@ keyboard_handler:
 	jmp .start
 	ret
 
+.load_first_screen:
+	mov esi, first_screen
+	call backup_pos
+	mov byte[screen_id], 1
+	call terminal_write_string
+	jmp .start
+
+.load_second_screen:
+	mov esi, second_screen
+	call backup_pos
+	mov byte[screen_id], 2
+	call terminal_write_string
+	jmp .start
+
+.load_third_screen:
+	mov esi, second_screen
+	call backup_pos
+	mov byte[screen_id], 3
+	call terminal_write_string
+	jmp .start
+
+.load_fourth_screen:
+	mov esi, second_screen
+	call backup_pos
+	mov byte[screen_id], 4
+	push eax
+	mov al, byte[fourth_terminal_color]
+	mov byte[terminal_color], al
+	pop eax
+	call terminal_write_string
+	jmp .start
+	
 .use_print_debug:	
 	push esi
 	call print_debug

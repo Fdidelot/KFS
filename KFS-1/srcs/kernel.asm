@@ -1,5 +1,12 @@
 BITS 32
 
+	extern keyboard_handler
+	extern add_header
+	global terminal_putchar
+	global terminal_write_string
+	global kernel_main
+
+	section .data
 VGA_WIDTH equ 80
 VGA_HEIGHT equ 25
 
@@ -19,16 +26,6 @@ VGA_COLOR_LIGHT_RED equ 12
 VGA_COLOR_LIGHT_MAGENTA equ 13
 VGA_COLOR_LIGHT_BROWN equ 14
 VGA_COLOR_WHITE equ 15
-
-
-	extern keyboard_handler
-	extern add_header
-	global terminal_putchar
-	global terminal_write_string
-	global kernel_main
-
-	section .data
-first_screen:	resb VGA_WIDTH*VGA_HEIGHT
 
 	section .text
 kernel_main:
@@ -151,6 +148,7 @@ terminal_write_string:
 ; Note: 
 ; - The string is looped through twice on printing.
 
+	section .data
 header_42 db 26 dup(" "), "        ,--,               ", 0xA, \
 	     26 dup(" "), "      ,--.'|       ,----,  ", 0xA, \
 	     26 dup(" "), "   ,--,  | :     .'   .' \ ", 0xA, \
@@ -166,8 +164,11 @@ header_42 db 26 dup(" "), "        ,--,               ", 0xA, \
 	     26 dup(" "), "      '  ,/  ;   | .'      ", 0xA, \
 	     26 dup(" "), "      '--' ", 258, " `---'         ", 0xA, 0
 
-terminal_color db 0
- 
+	global terminal_color
+terminal_color:	db 0
+	global terminal_cursor_pos
+	global terminal_column
+	global terminal_row
 terminal_cursor_pos:
 terminal_column db 0
 terminal_row db 0
