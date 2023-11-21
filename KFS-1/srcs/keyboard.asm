@@ -3,25 +3,43 @@
 	global keyboard_handler
 
 keyboard_handler:
-	xor eax, eax
-	in al, 0x64
-	test al, 0b00000001
-	jz keyboard_handler
-	in al, 0x60
+	mov ecx, kdbus
 
-	cmp ax, 0x80
-	jg .skip_release
+.start:
+	xor eax, eax
+	in al, 0x64 ; wait entries
+	test al, 0b00000001
+	jz .start
+	in al, 0x60 ; read input
+
+	cmp ax, 0x2A ; shift pressed?
+	je .press_shift
+	cmp ax, 0x80 ; check release
+	jg .key_release
 	
-	mov eax, [kdbus + eax]
+	mov eax, [ecx + eax]
 	push esi
 	call print_debug
 	pop esi
 
-.skip_release:	
-	jmp keyboard_handler
+.key_release:	
+	cmp ax, 0xAA
+	je .release_shift
+	;cmp byte [keystatus], 00000001b ; shift released?
+	jmp .start
 	ret
 
+.press_shift:	
+;	mov byte [keystatus], 00000001b
+	mov ecx, shift_kdbus
+	jmp .start
 
+.release_shift:	
+;	mov byte [keystatus], 00000000b
+	mov ecx, kdbus
+	jmp .start
+
+;keystatus dd 0
 
 kdbus db 0,  27, "1", "2", "3", "4", "5", "6", "7", "8", \
 	"9", "0", "-", "=", 0X8, \
@@ -33,6 +51,43 @@ kdbus db 0,  27, "1", "2", "3", "4", "5", "6", "7", "8", \
 	0X27, "`", 0, \
 	0X5C, "z", "x", "c", "v", "b", "n", \
 	"m", ",", ".", "/",   0, \
+	"*", \
+	0, \
+	" ", \
+	0, \
+	0, \
+	0, 0, 0, 0, 0, 0, 0, 0, \
+	0, \
+	0, \
+	0, \
+	0, \
+	0, \
+	0, \
+	"-", \
+	0, \
+	0, \
+	0, \
+	"+", \
+	0, \
+	0, \
+	0, \
+	0, \
+	0, \
+	0, 0, 0, \
+	0, \
+	0, \
+	0 ; All other keys are undefined
+
+shift_kdbus db 0,  27, "!", "@", "#", "$", "%", "^", "&", "*", \
+	"(", ")", "_", "+", 0X8, \
+	0X9, \
+	"Q", "W", "E", "R", \
+	"T", "Y", "U", "I", "O", "P", "{", "}", 0XA, \
+	0, \
+	"A", "S", "D", "F", "G", "H", "J", "K", "L", ":", \
+	0X27, "~", 0, \
+	0X7C, "Z", "X", "C", "V", "B", "N", \
+	"M", "<", ">", "?",   0, \
 	"*", \
 	0, \
 	" ", \
