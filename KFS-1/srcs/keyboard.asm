@@ -12,71 +12,94 @@ keyboard_handler:
 	jz .start
 	in al, 0x60 ; read input
 
+	cmp ax, 0x3A ; Caps Lock pressed?
+	je .press_caps
 	cmp ax, 0x2A ; shift pressed?
 	je .press_shift
 	cmp ax, 0x80 ; check release
 	jg .key_release
 	
 	mov eax, [ecx + eax]
-	push esi
-	call print_debug
-	pop esi
 
-.key_release:	
+	cmp byte [keystatus], 00000001b
+	je .use_print_debug
+
+	call terminal_putchar
+
+.key_release:
 	cmp ax, 0xAA
 	je .release_shift
-	;cmp byte [keystatus], 00000001b ; shift released?
 	jmp .start
 	ret
 
-.press_shift:	
-;	mov byte [keystatus], 00000001b
+.use_print_debug:	
+	push esi
+	call print_debug
+	pop esi
+	jmp .start
+
+.press_shift:
 	mov ecx, shift_kdbus
 	jmp .start
 
-.release_shift:	
-;	mov byte [keystatus], 00000000b
+.press_caps:
+	cmp byte [keystatus], 00000001b
+	je .unset_debug
+	cmp byte [keystatus], 00000000b
+	je .set_debug
+	jmp .start
+
+.set_debug:
+	mov byte [keystatus], 00000001b
+	jmp .start
+
+.unset_debug:
+	mov byte [keystatus], 00000000b
+	jmp .start
+
+.release_shift:
 	mov ecx, kdbus
 	jmp .start
 
-;keystatus dd 0
+keystatus dd 0
 
-kdbus db 0,  27, "1", "2", "3", "4", "5", "6", "7", "8", \
-	"9", "0", "-", "=", 0X8, \
-	0X9, \
-	"q", "w", "e", "r", \
-	"t", "y", "u", "i", "o", "p", "[", "]", 0XA, \
-	0, \
-	"a", "s", "d", "f", "g", "h", "j", "k", "l", ";", \
-	0X27, "`", 0, \
-	0X5C, "z", "x", "c", "v", "b", "n", \
-	"m", ",", ".", "/",   0, \
-	"*", \
-	0, \
-	" ", \
-	0, \
-	0, \
-	0, 0, 0, 0, 0, 0, 0, 0, \
-	0, \
-	0, \
-	0, \
-	0, \
-	0, \
-	0, \
-	"-", \
-	0, \
-	0, \
-	0, \
-	"+", \
-	0, \
-	0, \
-	0, \
-	0, \
-	0, \
-	0, 0, 0, \
-	0, \
-	0, \
-	0 ; All other keys are undefined
+kdbus:
+	db 0,  27, "1", "2", "3", "4", "5", "6", "7", "8" ; 9
+	db "9", "0", "-", "=", 0X8 ; Backspace
+	db 0X9 ; Tab
+	db "q", "w", "e", "r" ; 19
+	db "t", "y", "u", "i", "o", "p", "[", "]", 0XA ; Enter key
+	db 0 ; 29 - Control
+	db "a", "s", "d", "f", "g", "h", "j", "k", "l", ";" ; 39
+	db 0X27, "`", 0 ; Left Shift
+	db 0X5C, "z", "x", "c", "v", "b", "n" ; 49
+	db "m", ",", ".", "/",   0 ; Right shift
+	db "*"
+	db 0 ; Alt
+	db " " ; Space bar
+	db 0 ; Caps Lock
+	db 0 ; 59 - F1 key ... >
+	db 0, 0, 0, 0, 0, 0, 0, 0
+	db 0 ; < ... F10
+	db 0 ; 69 - Num Lock
+	db 0 ; Scroll Lock
+	db 0 ; Home Key
+	db 0 ; Up Arrow
+	db 0 ; Page Up
+	db "-"
+	db 0 ; Left Arrow
+	db 0
+	db 0 ; Right Arrow
+	db "+"
+	db 0 ; 79 - End key
+	db 0 ; Down Arrow
+	db 0 ; Page Down
+	db 0 ; Insert Key
+	db 0 ; Delete Key
+	db 0, 0, 0
+	db 0 ; F11 Key
+	db 0 ; F12 Key
+	db 0 ; All other keys are undefined
 
 shift_kdbus db 0,  27, "!", "@", "#", "$", "%", "^", "&", "*", \
 	"(", ")", "_", "+", 0X8, \
@@ -114,40 +137,3 @@ shift_kdbus db 0,  27, "!", "@", "#", "$", "%", "^", "&", "*", \
 	0, \
 	0, \
 	0 ; All other keys are undefined
-
-;kdbus db 0,  27, "1", "2", "3", "4", "5", "6", "7", "8", \ ;/* 9 */
-;	"9", "0", "-", "=", 0X8, \ ; Backspace
-;	0X9, \ ; Tab
-;	"q", "w", "e", "r", \ ; 19
-;	"t", "y", "u", "i", "o", "p", "[", "]", 0XA, \ ; Enter key
-;	0, \ ; 29   - Control
-;	"a", "s", "d", "f", "g", "h", "j", "k", "l", ";", \ ; 39
-;	0X27, "`",   0, \ ; Left shift
-;	0X5C, "z", "x", "c", "v", "b", "n", \ ; 49
-;	"m", ",", ".", "/",   0, \ ; Right shift
-;	"*", \ ;
-;	0, \ ; Alt
-;	" ", \ ; Space bar
-;	0, \ ; Caps lock
-;	0, \ ; 59 - F1 key ... >
-;	0,   0,   0,   0,   0,   0,   0,   0, \
-;	0, \ ; < ... F10
-;	0, \ ; 69 - Num lock
-;	0, \ ; Scroll Lock
-;	0, \ ; Home key
-;	0, \ ; Up Arrow
-;	0, \ ; Page Up
-;	"-", \
-;	0, \ ; Left Arrow
-;	0,
-;	0, \ ; Right Arrow
-;	"+",
-;	0, \ ; 79 - End key
-;	0, \ ; Down Arrow
-;	0, \ ; Page Down
-;	0, \ ; Insert Key
-;	0, \ ; Delete Key
-;	0,   0,   0, \
-;	0, \ ; F11 Key
-;	0, \ ; F12 Key
-;	0 ; All other keys are undefined
