@@ -6,11 +6,12 @@
 	global add_header
 
 	section .text
+;call only at startup and setup header for all screen
 add_header:
-	push edx
-	push ecx
+	push edx ; edx used by terminal color
+;	push ecx ; push/pop ecx isn't needed at startup? (never used)
 	mov edx, 0
-	mov byte[first_terminal_color], 4
+	;mov byte [first_terminal_color], 4 ; to delete, it was a test
 .loop:
 	mov cl, byte[esi + edx]
 	mov byte[first_screen + edx], cl
@@ -23,10 +24,11 @@ add_header:
 	jmp .loop
 .end:
 	mov eax, first_screen
-	pop ecx
+;	pop ecx
 	pop edx
 	ret
 
+;backup cursor position when switch screen
 backup_pos:
 	cmp byte[screen_id], 1
 	je .backup_first
@@ -46,10 +48,28 @@ backup_pos:
 	pop eax
 	ret
 .backup_second:
+	push eax
+	mov al, byte[terminal_column]
+	mov byte[second_terminal_column], al
+	mov al, byte[terminal_row]
+	mov byte[second_terminal_row], al
+	pop eax
 	ret
 .backup_third:
+	push eax
+	mov al, byte[terminal_column]
+	mov byte[third_terminal_column], al
+	mov al, byte[terminal_row]
+	mov byte[second_terminal_row], al
+	pop eax
 	ret
 .backup_fourth:
+	push eax
+	mov al, byte[terminal_column]
+	mov byte[fourth_terminal_column], al
+	mov al, byte[terminal_row]
+	mov byte[fourth_terminal_row], al
+	pop eax
 	ret
 
 	section .data
@@ -67,6 +87,7 @@ backup_pos:
 	global fourth_terminal_cursor_pos
 	global screen_id
 screen_id:	db 1
+; set all screen at VGA_WIDTH*VGA_HEIGHT = 2000, the size of the screen
 first_screen:	db 2000 dup(" ")
 second_screen:	db 2000 dup(" ")
 third_screen:	db 2000 dup(" ")

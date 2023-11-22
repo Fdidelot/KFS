@@ -33,13 +33,14 @@ kernel_main:
 	mov dl, VGA_COLOR_BLACK
 	call terminal_set_color
 
-	mov esi, header_42
+	mov esi, header_42 ; need to be change when kernel will not loop
+; on keyboard_handler
 	call add_header
 	mov esi, eax
 
 	call terminal_write_string
 	call keyboard_handler
-	jmp $
+;	jmp $ ; no needed again for the time
 
  
 ; IN = dl: bg color, dh: fg color
@@ -78,8 +79,8 @@ terminal_putentryat:
 	call terminal_getidx
  
 	mov dl, [terminal_color]
-	mov byte [0xB8000 + ebx], al
-	mov byte [0xB8001 + ebx], dl
+	mov byte[0xB8000 + ebx], al
+	mov byte[0xB8001 + ebx], dl
 
 	popa
 	ret
@@ -106,8 +107,6 @@ terminal_putchar:
  
 	mov dl, 0
 
-
- 
 .cursor_moved:
 	; Store new cursor position 
 	mov [terminal_cursor_pos], dx
@@ -148,6 +147,7 @@ terminal_write_string:
 ; Note: 
 ; - The string is looped through twice on printing.
 
+;don't forget do pimp the header with a lot of 258
 	section .data
 header_42 db 26 dup(" "), "        ,--,               ", 0xA, \
 	     26 dup(" "), "      ,--.'|       ,----,  ", 0xA, \

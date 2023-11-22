@@ -6,6 +6,8 @@
 	extern print_debug
 	extern first_screen
 	extern second_screen
+	extern third_screen
+	extern fourth_screen
 	extern screen_id
 	global keyboard_handler
 
@@ -35,15 +37,15 @@ keyboard_handler:
 	cmp ax, 0x80 ; check release
 	jg .key_release
 	
-	mov eax, [ecx + eax]
+	mov eax, [ecx + eax] ; get char in kdbus/shift_kdbus array
 
-	cmp byte [keystatus], 00000001b
+	cmp byte[keystatus], 00000001b ; check capslock
 	je .use_print_debug
 
 	call terminal_putchar
 
 .key_release:
-	cmp ax, 0xAA
+	cmp ax, 0xAA ; break code for shift, release shift?
 	je .release_shift
 	jmp .start
 	ret
@@ -63,19 +65,19 @@ keyboard_handler:
 	jmp .start
 
 .load_third_screen:
-	mov esi, second_screen
+	mov esi, third_screen
 	call backup_pos
 	mov byte[screen_id], 3
 	call terminal_write_string
 	jmp .start
 
 .load_fourth_screen:
-	mov esi, second_screen
+	mov esi, fourth_screen
 	call backup_pos
 	mov byte[screen_id], 4
 	push eax
-	mov al, byte[fourth_terminal_color]
-	mov byte[terminal_color], al
+	mov al, byte[fourth_terminal_color] ; this bug for the time
+	mov byte[terminal_color], al ; this too
 	pop eax
 	call terminal_write_string
 	jmp .start
@@ -91,36 +93,36 @@ keyboard_handler:
 	jmp .start
 
 .press_caps:
-	cmp byte [keystatus], 00000001b
+	cmp byte[keystatus], 00000001b
 	je .unset_debug
-	cmp byte [keystatus], 00000000b
+	cmp byte[keystatus], 00000000b
 	je .set_debug
 	jmp .start
 
 .set_debug:
-	mov byte [keystatus], 00000001b
+	mov byte[keystatus], 00000001b
 	jmp .start
 
 .unset_debug:
-	mov byte [keystatus], 00000000b
+	mov byte[keystatus], 00000000b
 	jmp .start
 
 .release_shift:
 	mov ecx, kdbus
 	jmp .start
 
-keystatus dd 0
+keystatus: dd 0
 
 kdbus:
 	db 0,  27, "1", "2", "3", "4", "5", "6", "7", "8" ; 9
-	db "9", "0", "-", "=", 0X8 ; Backspace
-	db 0X9 ; Tab
+	db "9", "0", "-", "=", 0x8 ; Backspace
+	db 0x9 ; Tab
 	db "q", "w", "e", "r" ; 19
-	db "t", "y", "u", "i", "o", "p", "[", "]", 0XA ; Enter key
+	db "t", "y", "u", "i", "o", "p", "[", "]", 0xA ; Enter key
 	db 0 ; 29 - Control
 	db "a", "s", "d", "f", "g", "h", "j", "k", "l", ";" ; 39
-	db 0X27, "`", 0 ; Left Shift
-	db 0X5C, "z", "x", "c", "v", "b", "n" ; 49
+	db 0x27, "`", 0 ; Left Shift
+	db 0x5C, "z", "x", "c", "v", "b", "n" ; 49
 	db "m", ",", ".", "/",   0 ; Right shift
 	db "*"
 	db 0 ; Alt
@@ -150,14 +152,14 @@ kdbus:
 	db 0 ; All other keys are undefined
 
 shift_kdbus db 0,  27, "!", "@", "#", "$", "%", "^", "&", "*", \
-	"(", ")", "_", "+", 0X8, \
-	0X9, \
+	"(", ")", "_", "+", 0x8, \
+	0x9, \
 	"Q", "W", "E", "R", \
-	"T", "Y", "U", "I", "O", "P", "{", "}", 0XA, \
+	"T", "Y", "U", "I", "O", "P", "{", "}", 0xA, \
 	0, \
 	"A", "S", "D", "F", "G", "H", "J", "K", "L", ":", \
-	0X27, "~", 0, \
-	0X7C, "Z", "X", "C", "V", "B", "N", \
+	0x27, "~", 0, \
+	0x7C, "Z", "X", "C", "V", "B", "N", \
 	"M", "<", ">", "?",   0, \
 	"*", \
 	0, \
