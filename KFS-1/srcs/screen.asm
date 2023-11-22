@@ -2,10 +2,63 @@
 	extern terminal_color
 	extern terminal_column
 	extern terminal_row
+	global set_pos
+	global screens_set_color
 	global backup_pos
 	global add_header
 
+	section .data
+VGA_COLOR_BLACK equ 0
+VGA_COLOR_BLUE equ 1
+VGA_COLOR_GREEN equ 2
+VGA_COLOR_CYAN equ 3
+VGA_COLOR_RED equ 4
+VGA_COLOR_MAGENTA equ 5
+VGA_COLOR_BROWN equ 6
+VGA_COLOR_LIGHT_GREY equ 7
+VGA_COLOR_DARK_GREY equ 8
+VGA_COLOR_LIGHT_BLUE equ 9
+VGA_COLOR_LIGHT_GREEN equ 10
+VGA_COLOR_LIGHT_CYAN equ 11
+VGA_COLOR_LIGHT_RED equ 12
+VGA_COLOR_LIGHT_MAGENTA equ 13
+VGA_COLOR_LIGHT_BROWN equ 14
+VGA_COLOR_WHITE equ 15
+
 	section .text
+;setup screens colors
+screens_set_color:
+	push edx
+	mov dh, VGA_COLOR_LIGHT_GREY
+        mov dl, VGA_COLOR_BLACK
+
+	shl dl, 4
+	or dl, dh
+	mov [first_terminal_color], dl
+
+	mov dh, VGA_COLOR_LIGHT_BLUE
+        mov dl, VGA_COLOR_BLACK
+
+	shl dl, 4
+	or dl, dh
+	mov [second_terminal_color], dl
+
+	mov dh, VGA_COLOR_LIGHT_GREEN
+        mov dl, VGA_COLOR_BLACK
+
+	shl dl, 4
+	or dl, dh
+	mov [third_terminal_color], dl
+
+	mov dh, VGA_COLOR_LIGHT_MAGENTA
+        mov dl, VGA_COLOR_BLACK
+
+	shl dl, 4
+	or dl, dh
+	mov [fourth_terminal_color], dl
+
+	pop edx
+
 ;call only at startup and setup header for all screen
 add_header:
 	push edx ; edx used by terminal color
@@ -70,6 +123,11 @@ backup_pos:
 	mov al, byte[terminal_row]
 	mov byte[fourth_terminal_row], al
 	pop eax
+	ret
+
+set_pos:
+	mov byte[terminal_column], 0
+	mov byte[terminal_row], 0
 	ret
 
 	section .data

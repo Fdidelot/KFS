@@ -1,4 +1,7 @@
 	extern terminal_putchar
+	extern first_terminal_color
+	extern second_terminal_color
+	extern third_terminal_color
 	extern fourth_terminal_color
 	extern terminal_color
 	extern terminal_write_string
@@ -9,6 +12,8 @@
 	extern third_screen
 	extern fourth_screen
 	extern screen_id
+	extern set_pos
+	extern put_in_str
 	global keyboard_handler
 
 	section .text
@@ -42,7 +47,9 @@ keyboard_handler:
 	cmp byte[keystatus], 00000001b ; check capslock
 	je .use_print_debug
 
-	call terminal_putchar
+;	call terminal_putchar
+	call put_in_str
+;	call terminal_write_string 
 
 .key_release:
 	cmp ax, 0xAA ; break code for shift, release shift?
@@ -54,6 +61,13 @@ keyboard_handler:
 	mov esi, first_screen
 	call backup_pos
 	mov byte[screen_id], 1
+	call set_pos
+
+	push eax
+	mov al, byte[first_terminal_color]
+	mov byte[terminal_color], al
+	pop eax
+
 	call terminal_write_string
 	jmp .start
 
@@ -61,24 +75,41 @@ keyboard_handler:
 	mov esi, second_screen
 	call backup_pos
 	mov byte[screen_id], 2
+	call set_pos
+
+	push eax
+	mov al, byte[second_terminal_color]
+	mov byte[terminal_color], al
+	pop eax
+
 	call terminal_write_string
 	jmp .start
 
 .load_third_screen:
 	mov esi, third_screen
 	call backup_pos
-	mov byte[screen_id], 3
+	mov byte[screen_id], 4
+	call set_pos
+
+	push eax
+	mov al, byte[third_terminal_color]
+	mov byte[terminal_color], al
+	pop eax
+
 	call terminal_write_string
 	jmp .start
 
 .load_fourth_screen:
 	mov esi, fourth_screen
 	call backup_pos
-	mov byte[screen_id], 4
+	mov byte[screen_id], 8
+	call set_pos
+
 	push eax
-	mov al, byte[fourth_terminal_color] ; this bug for the time
-	mov byte[terminal_color], al ; this too
+	mov al, byte[fourth_terminal_color]
+	mov byte[terminal_color], al
 	pop eax
+
 	call terminal_write_string
 	jmp .start
 	

@@ -2,6 +2,8 @@ BITS 32
 
 	extern keyboard_handler
 	extern add_header
+	extern screens_set_color
+	global put_in_str
 	global terminal_putchar
 	global terminal_write_string
 	global kernel_main
@@ -32,6 +34,7 @@ kernel_main:
 	mov dh, VGA_COLOR_LIGHT_GREY
 	mov dl, VGA_COLOR_BLACK
 	call terminal_set_color
+	call screens_set_color
 
 	mov esi, header_42 ; need to be change when kernel will not loop
 ; on keyboard_handler
@@ -140,6 +143,43 @@ terminal_write_string:
 	pusha
 	call terminal_write
 	popa
+	ret
+
+put_in_str:
+	mov dx, [terminal_cursor_pos]
+
+	push ebx
+	push edx
+	push eax
+        xor ebx, ebx
+        mov bl, dh
+        xor dh, dh
+
+        mov eax, VGA_WIDTH
+        mul edx
+
+        add ebx, eax
+	pop eax
+	mov byte[esi + ebx], al
+	pop edx
+	pop ebx
+ 
+	inc dh
+	cmp dh, VGA_WIDTH
+	jne .cursor_moved
+ 
+	mov dh, 0
+	inc dl
+
+	cmp dl, VGA_HEIGHT
+	jne .cursor_moved
+ 
+	mov dl, 0
+
+.cursor_moved:
+	; Store new cursor position 
+	mov [terminal_cursor_pos], dx
+ 
 	ret
 
 ; Exercises:
