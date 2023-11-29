@@ -87,7 +87,32 @@ terminal_putentryat:
 
 	popa
 	ret
- 
+
+scroll:
+	push eax
+	push edx
+	xor eax, eax
+.loop:
+	cmp eax, 3840
+	jge .empty_last_line
+	mov dh, byte[0xB80A0 + eax]
+	mov dl, byte[0xB80A1 + eax]
+	mov byte[0xB8000 + eax], dh
+	mov byte[0xB8001 + eax], dl
+	add eax, 2
+	jmp .loop
+.empty_last_line:
+	cmp eax, 4000
+	jge .end
+	mov byte[0xB8000 + eax], " "
+	mov byte[0xB8001 + eax], 0
+	add eax, 2
+	jmp .empty_last_line
+.end:
+	pop edx
+	pop eax
+	ret
+	
 ; IN = al: ASCII char
 terminal_putchar:
 	mov dx, [terminal_cursor_pos] ; This loads terminal_column at DH, and terminal_row at DL
@@ -107,8 +132,8 @@ terminal_putchar:
 
 	cmp dl, VGA_HEIGHT
 	jne .cursor_moved
- 
-	mov dl, 0
+	call scroll
+	dec dl
 
 .cursor_moved:
 	; Store new cursor position 

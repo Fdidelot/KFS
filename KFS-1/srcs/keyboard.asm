@@ -47,9 +47,9 @@ keyboard_handler:
 	cmp byte[keystatus], 00000001b ; check capslock
 	je .use_print_debug
 
-;	call terminal_putchar
-	call put_in_str
-;	call terminal_write_string 
+	call terminal_putchar
+;//	call put_in_str		
+;//	call terminal_write_string 
 
 .key_release:
 	cmp ax, 0xAA ; break code for shift, release shift?
