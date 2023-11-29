@@ -31,6 +31,8 @@ VGA_COLOR_WHITE equ 15
 
 	section .text
 kernel_main:
+	mov byte [byte 0xB9000], 5
+	mov byte [byte 0xB9001], 10
 	mov dh, VGA_COLOR_LIGHT_GREY
 	mov dl, VGA_COLOR_BLACK
 	call terminal_set_color
@@ -42,12 +44,40 @@ kernel_main:
 	mov esi, eax
 
 	call terminal_write_string
+	call set_cursor_position
 	call keyboard_handler
 ;	jmp $ ; no needed again for the time
 
  
 ; IN = dl: bg color, dh: fg color
 ; OUT = none
+
+set_cursor_position:
+	mov ah, VGA_WIDTH
+	mul byte [0xB9000]
+	add ax, [0xB9001]
+	shl ax, 1
+	mov di, ax
+	
+	mov ax, 0xB8000
+	add di, ax
+
+	mov dx, 0x03D4
+	mov al, 0x0F
+	out dx, al
+	inc dx
+	mov al, byte [di+1]
+	out dx, al
+	
+	mov dx, 0x3D4
+	mov al, 0x0E
+	out dx, al
+	inc dx
+	mov al, byte [di]
+	out dx, al
+
+	ret
+
 terminal_set_color:
 	shl dl, 4
  
