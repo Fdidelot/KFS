@@ -119,7 +119,8 @@ terminal_putchar:
 .cursor_moved:
 	; Store new cursor position 
 	mov [terminal_cursor_pos], dx
- 
+ 	call set_cursor_pos
+
 	ret
  
 ; IN = cx: length of string, ESI: string location
@@ -164,5 +165,35 @@ terminal_write_string:
 	mov byte[terminal_row], 0
 
 	call terminal_write
+
+	popa
+	ret
+
+set_cursor_pos:
+	pusha
+	xor ebx, ebx
+	xor eax, eax
+	mov al, byte[terminal_column]
+	mov bl, [terminal_row]
+
+	mov dl, VGA_WIDTH
+	mul dl
+	add bx, ax
+
+	mov dx, 0x03d4
+	mov al, 0x0f
+	out dx, al
+
+	inc dl
+	mov al, bl
+	out dx, al
+
+	dec dl
+	mov al, 0x0e
+	out dx, al
+
+	inc dl
+	mov al, bh
+	out dx, al
 	popa
 	ret
