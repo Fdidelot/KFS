@@ -6,10 +6,11 @@ ISO_DIR = iso_dir
 
 SRCS =	boot.asm \
 		kernel.asm \
-		keyboard.asm \
+		keyboard_handler.asm \
 		print_debug.asm \
 		print_hexa.asm \
-		screen.asm
+		setup_screen.asm \
+		write_terminal.asm
 
 NA = nasm
 NAFL = -felf32

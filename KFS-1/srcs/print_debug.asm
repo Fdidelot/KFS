@@ -1,15 +1,21 @@
-	extern terminal_write_string
+	; Extern section
+	extern terminal_write
 	extern terminal_putchar
 	extern print_hexa
+
+	; Global section
 	global print_debug
+
+	section .data
 	debug_string1 db "value(", 0
 	debug_string2 db ") char(", 0
 	debug_string3 db ")", 0xA, 0
 
+	section .text
 print_debug:
 	push esi
 	mov esi, debug_string1
-	call terminal_write_string
+	call terminal_write
 
 	pop esi
 	push eax
@@ -18,7 +24,7 @@ print_debug:
 	pop eax
 
 	mov esi, debug_string2
-	call terminal_write_string
+	call terminal_write
 
 	push eax
 	and eax, 0xff
@@ -26,7 +32,7 @@ print_debug:
 	pop eax
 
 	mov esi, debug_string3
-	call terminal_write_string
+	call terminal_write
 
 	ret
 	

@@ -1,149 +1,24 @@
-	extern terminal_putchar
+    ; Extern section
+    extern handle_key_and_display
+    extern terminal_color
 	extern first_terminal_color
 	extern second_terminal_color
 	extern third_terminal_color
 	extern fourth_terminal_color
-	extern terminal_color
-	extern terminal_write_string
-	extern backup_pos
+	extern terminal_putchar
 	extern print_debug
 	extern first_screen
 	extern second_screen
 	extern third_screen
 	extern fourth_screen
 	extern screen_id
-	extern set_pos
-	extern put_in_str
+	extern save_screen
+	extern load_pos
+
+    ; Global section
 	global keyboard_handler
 
-	section .text
-keyboard_handler:
-	mov ecx, kdbus
-
-.start:
-	xor eax, eax
-	in al, 0x64 ; wait entries
-	test al, 0b00000001
-	jz .start
-	in al, 0x60 ; read input
-
-	cmp ax, 0x02 ; f1 pressed ?
-	je .load_first_screen
-	cmp ax, 0x03 ; f2 pressed ?
-	je .load_second_screen
-	cmp ax, 0x04 ; f3 pressed ?
-	je .load_third_screen
-	cmp ax, 0x05 ; f4 pressed ?
-	je .load_fourth_screen
-	cmp ax, 0x3A ; Caps Lock pressed?
-	je .press_caps
-	cmp ax, 0x2A ; shift pressed?
-	je .press_shift
-	cmp ax, 0x80 ; check release
-	jg .key_release
-	
-	mov eax, [ecx + eax] ; get char in kdbus/shift_kdbus array
-
-	cmp byte[keystatus], 00000001b ; check capslock
-	je .use_print_debug
-
-	call terminal_putchar
-;//	call put_in_str		
-;//	call terminal_write_string 
-
-.key_release:
-	cmp ax, 0xAA ; break code for shift, release shift?
-	je .release_shift
-	jmp .start
-	ret
-
-.load_first_screen:
-	mov esi, first_screen
-	call backup_pos
-	mov byte[screen_id], 1
-	call set_pos
-
-	push eax
-	mov al, byte[first_terminal_color]
-	mov byte[terminal_color], al
-	pop eax
-
-	call terminal_write_string
-	jmp .start
-
-.load_second_screen:
-	mov esi, second_screen
-	call backup_pos
-	mov byte[screen_id], 2
-	call set_pos
-
-	push eax
-	mov al, byte[second_terminal_color]
-	mov byte[terminal_color], al
-	pop eax
-
-	call terminal_write_string
-	jmp .start
-
-.load_third_screen:
-	mov esi, third_screen
-	call backup_pos
-	mov byte[screen_id], 4
-	call set_pos
-
-	push eax
-	mov al, byte[third_terminal_color]
-	mov byte[terminal_color], al
-	pop eax
-
-	call terminal_write_string
-	jmp .start
-
-.load_fourth_screen:
-	mov esi, fourth_screen
-	call backup_pos
-	mov byte[screen_id], 8
-	call set_pos
-
-	push eax
-	mov al, byte[fourth_terminal_color]
-	mov byte[terminal_color], al
-	pop eax
-
-	call terminal_write_string
-	jmp .start
-	
-.use_print_debug:	
-	push esi
-	call print_debug
-	pop esi
-	jmp .start
-
-.press_shift:
-	mov ecx, shift_kdbus
-	jmp .start
-
-.press_caps:
-	cmp byte[keystatus], 00000001b
-	je .unset_debug
-	cmp byte[keystatus], 00000000b
-	je .set_debug
-	jmp .start
-
-.set_debug:
-	mov byte[keystatus], 00000001b
-	jmp .start
-
-.unset_debug:
-	mov byte[keystatus], 00000000b
-	jmp .start
-
-.release_shift:
-	mov ecx, kdbus
-	jmp .start
-
-keystatus: dd 0
-
+    section .data
 kdbus:
 	db 0,  27, "1", "2", "3", "4", "5", "6", "7", "8" ; 9
 	db "9", "0", "-", "=", 0x8 ; Backspace
@@ -218,3 +93,129 @@ shift_kdbus db 0,  27, "!", "@", "#", "$", "%", "^", "&", "*", \
 	0, \
 	0, \
 	0 ; All other keys are undefined
+
+keystatus: dd 0
+
+	section .text
+keyboard_handler:
+	mov ecx, kdbus
+
+.start:
+	xor eax, eax
+	in al, 0x64 ; wait entries
+	test al, 0b00000001
+	jz .start
+	in al, 0x60 ; read input
+
+	cmp ax, 0x02 ; 1 pressed ?
+	je .load_first_screen
+	cmp ax, 0x03 ; 2 pressed ?
+	je .load_second_screen
+	cmp ax, 0x04 ; 3 pressed ?
+	je .load_third_screen
+	cmp ax, 0x05 ; 4 pressed ?
+	je .load_fourth_screen
+	cmp ax, 0x3A ; Caps Lock pressed?
+	je .press_caps
+	cmp ax, 0x2A ; shift pressed?
+	je .press_shift
+	cmp ax, 0x80 ; check release
+	jg .key_release
+	
+	mov eax, [ecx + eax] ; get char in kdbus/shift_kdbus array
+
+	cmp byte[keystatus], 00000001b ; check capslock
+	je .use_print_debug
+
+	call terminal_putchar
+
+.key_release:
+	cmp ax, 0xAA ; break code for shift, release shift?
+	je .release_shift
+	jmp .start
+	ret
+
+.load_first_screen:
+	call save_screen
+	
+	mov esi, first_screen
+	mov byte[screen_id], 1
+
+	push eax
+	mov al, byte[first_terminal_color]
+	mov byte[terminal_color], al
+	pop eax
+
+	call handle_key_and_display
+	jmp .start
+
+.load_second_screen:
+	call save_screen
+
+	mov esi, second_screen
+	mov byte[screen_id], 2
+
+	push eax
+	mov al, byte[second_terminal_color]
+	mov byte[terminal_color], al
+	pop eax
+
+	call handle_key_and_display
+	jmp .start
+
+.load_third_screen:
+	call save_screen
+
+	mov esi, third_screen
+	mov byte[screen_id], 4
+
+	push eax
+	mov al, byte[third_terminal_color]
+	mov byte[terminal_color], al
+	pop eax
+
+	call handle_key_and_display
+	jmp .start
+
+.load_fourth_screen:
+	call save_screen
+
+	mov esi, fourth_screen
+	mov byte[screen_id], 8
+
+	push eax
+	mov al, byte[fourth_terminal_color]
+	mov byte[terminal_color], al
+	pop eax
+
+	call handle_key_and_display
+	jmp .start
+	
+.use_print_debug:	
+	push esi
+	call print_debug
+	pop esi
+	jmp .start
+
+.press_shift:
+	mov ecx, shift_kdbus
+	jmp .start
+
+.press_caps:
+	cmp byte[keystatus], 00000001b
+	je .unset_debug
+	cmp byte[keystatus], 00000000b
+	je .set_debug
+	jmp .start
+
+.set_debug:
+	mov byte[keystatus], 00000001b
+	jmp .start
+
+.unset_debug:
+	mov byte[keystatus], 00000000b
+	jmp .start
+
+.release_shift:
+	mov ecx, kdbus
+	jmp .start
