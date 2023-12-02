@@ -207,7 +207,7 @@ keyboard_handler:
 	jmp .start
 
 .press_ctrl:
-	mov byte[keystatus], 00000010b
+	or byte[keystatus], 00000010b
 	jmp .start
 
 .release_ctrl:
@@ -226,17 +226,17 @@ keyboard_handler:
 	jmp .start
 
 .press_caps:
-	cmp byte[keystatus], 00000001b
+	cmp byte[keystatus], 00000001b ; Do A TEST
 	je .unset_debug
-	cmp byte[keystatus], 00000000b
+	cmp byte[keystatus], 00000000b ; DO A TEST
 	je .set_debug
 	jmp .start
 
 .set_debug:
-	mov byte[keystatus], 00000001b
+	or byte[keystatus], 00000001b
 	jmp .start
 
 .unset_debug:
-	mov byte[keystatus], 00000000b
+	mov byte[keystatus], 00000000b ; PROBABLY A XOR
 	jmp .start
 

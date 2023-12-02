@@ -9,6 +9,7 @@ SRCS =	boot.asm \
 		keyboard_handler.asm \
 		print_debug.asm \
 		print_hexa.asm \
+		print_registers.asm \
 		setup_screen.asm \
 		write_terminal.asm
 
