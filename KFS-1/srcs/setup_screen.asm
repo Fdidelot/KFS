@@ -10,6 +10,7 @@
 	global third_terminal_color
 	global fourth_terminal_color
 	global set_terminal_colors
+	global set_cursor_shape
 	global screen_id
 	global add_headers
 	global first_screen
@@ -68,6 +69,19 @@ fourth_screen:	db 2000 dup(0), 0
 screen_id db 1
 
 	section .text
+set_cursor_shape:
+	pusha
+	mov dx, 0x03d4
+	mov al, 0x0a ; low cursor shape register
+	out dx, al
+
+	inc dl
+	mov al, 0x0f ; the thinnest shape
+	out dx, al
+
+	popa
+	ret
+
 ;setup screens colors
 set_terminal_colors:
 	push edx
@@ -78,7 +92,7 @@ set_terminal_colors:
 	shl dl, 4
 	or dl, dh
 	mov [first_terminal_color], dl
-    mov [terminal_color], dl ; set terminal color for the first time
+	mov [terminal_color], dl ; set terminal color for the first time
 
 	mov dh, VGA_COLOR_LIGHT_BLUE
         mov dl, VGA_COLOR_BLACK
@@ -107,7 +121,7 @@ set_terminal_colors:
 add_headers:
 	push edx ; edx used by terminal color
 
-    mov esi, header_ft
+	mov esi, header_ft
 	mov edx, 0
 .loop:
 	mov cl, byte[esi + edx]

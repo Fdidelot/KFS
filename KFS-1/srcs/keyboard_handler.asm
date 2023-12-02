@@ -1,6 +1,6 @@
-    ; Extern section
-    extern handle_key_and_display
-    extern terminal_color
+	; Extern section
+	extern handle_key_and_display
+	extern terminal_color
 	extern first_terminal_color
 	extern second_terminal_color
 	extern third_terminal_color
@@ -15,10 +15,10 @@
 	extern save_screen
 	extern load_pos
 
-    ; Global section
+	; Global section
 	global keyboard_handler
 
-    section .data
+	section .data
 kdbus:
 	db 0,  27, "1", "2", "3", "4", "5", "6", "7", "8" ; 9
 	db "9", "0", "-", "=", 0x8 ; Backspace

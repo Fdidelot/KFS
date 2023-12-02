@@ -1,6 +1,6 @@
-    ; Global section
-    global terminal_write_string
-    global terminal_write
+	; Global section
+	global terminal_write_string
+	global terminal_write
 	global terminal_color
 	global terminal_column
 	global terminal_row
@@ -45,6 +45,7 @@ terminal_putentryat:
 	mov dl, [terminal_color]
 	mov byte[0xB8000 + ebx], al
 	mov byte[0xB8001 + ebx], dl
+	mov byte[0xB8003 + ebx], dl ; set next position's color for cursor
 
 	popa
 	ret
@@ -70,7 +71,7 @@ scroll:
 	jge .end
 
 	mov byte[0xB8000 + eax], 0
-	mov byte[0xB8001 + eax], 0
+	;mov byte[0xB8001 + eax], dl
 
 	add eax, 2
 	jmp .empty_last_line
@@ -80,6 +81,7 @@ scroll:
 	ret
 
 ; fill line with space when thereis a \n for switch screens purpose
+; IN = dh: cursor width pos 
 fill_line_with_space:
 	cmp dh, VGA_WIDTH
 	je .end
@@ -174,7 +176,7 @@ set_cursor_pos:
 	xor ebx, ebx
 	xor eax, eax
 	mov al, byte[terminal_column]
-	mov bl, [terminal_row]
+	mov bl, byte[terminal_row]
 
 	mov dl, VGA_WIDTH
 	mul dl
