@@ -28,7 +28,7 @@ kdbus:
 	db 0 ; 29 - Control
 	db "a", "s", "d", "f", "g", "h", "j", "k", "l", ";" ; 39
 	db 0x27, "`", 0 ; Left Shift
-	db 0x5C, "z", "x", "c", "v", "b", "n" ; 49
+	db 0x5C, "z", "x", "c", "v", "b", "n" ; 49 ; 0x7c maj for 0x5c ?
 	db "m", ",", ".", "/",   0 ; Right shift
 	db "*"
 	db 0 ; Alt
@@ -65,7 +65,7 @@ shift_kdbus db 0,  0, "!", "@", "#", "$", "%", "^", "&", "*", \
 	0, \
 	"A", "S", "D", "F", "G", "H", "J", "K", "L", ":", \
 	0x27, "~", 0, \
-	0x7C, "Z", "X", "C", "V", "B", "N", \ ; 0x7c maj for 0x5c ?
+	0x7C, "Z", "X", "C", "V", "B", "N", \
 	"M", "<", ">", "?",   0, \
 	"*", \
 	0, \
@@ -123,8 +123,8 @@ keyboard_handler:
 	cmp al, 0 ; skip unsued keys
 	je .start
 
-	cmp byte[keystatus], 00000001b ; check capslock
-	je .use_print_debug
+	test byte[keystatus], 00000001b ; check capslock
+	jnz .use_print_debug
 
 	call terminal_putchar
 
