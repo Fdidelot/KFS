@@ -20,9 +20,9 @@
 
 	section .data
 kdbus:
-	db 0,  27, "1", "2", "3", "4", "5", "6", "7", "8" ; 9
-	db "9", "0", "-", "=", 0x8 ; Backspace
-	db 0x9 ; Tab
+	db 0,  0, "1", "2", "3", "4", "5", "6", "7", "8" ; 9
+	db "9", "0", "-", "=", 0 ; Backspace
+	db 0 ; Tab
 	db "q", "w", "e", "r" ; 19
 	db "t", "y", "u", "i", "o", "p", "[", "]", 0xA ; Enter key
 	db 0 ; 29 - Control
@@ -57,15 +57,15 @@ kdbus:
 	db 0 ; F12 Key
 	db 0 ; All other keys are undefined
 
-shift_kdbus db 0,  27, "!", "@", "#", "$", "%", "^", "&", "*", \
-	"(", ")", "_", "+", 0x8, \
-	0x9, \
+shift_kdbus db 0,  0, "!", "@", "#", "$", "%", "^", "&", "*", \
+	"(", ")", "_", "+", 0, \
+	0, \
 	"Q", "W", "E", "R", \
 	"T", "Y", "U", "I", "O", "P", "{", "}", 0xA, \
 	0, \
 	"A", "S", "D", "F", "G", "H", "J", "K", "L", ":", \
 	0x27, "~", 0, \
-	0x7C, "Z", "X", "C", "V", "B", "N", \
+	0x7C, "Z", "X", "C", "V", "B", "N", \ ; 0x7c maj for 0x5c ?
 	"M", "<", ">", "?",   0, \
 	"*", \
 	0, \
@@ -103,26 +103,25 @@ keyboard_handler:
 .start:
 	xor eax, eax
 	in al, 0x64 ; wait entries
-	test al, 0b00000001
+	test al, 0b00000001 ; bit 1 is no entry
 	jz .start
 	in al, 0x60 ; read input
 
-	cmp ax, 0x02 ; 1 pressed ?
-	je .load_first_screen
-	cmp ax, 0x03 ; 2 pressed ?
-	je .load_second_screen
-	cmp ax, 0x04 ; 3 pressed ?
-	je .load_third_screen
-	cmp ax, 0x05 ; 4 pressed ?
-	je .load_fourth_screen
 	cmp ax, 0x3A ; Caps Lock pressed?
 	je .press_caps
 	cmp ax, 0x2A ; shift pressed?
 	je .press_shift
+	cmp ax, 0x1D ; CTRL pressed?
+	je .press_ctrl
 	cmp ax, 0x80 ; check release
 	jg .key_release
+
+	test byte[keystatus], 00000010b ; check switch screen
+	jnz .switch_screen
 	
 	mov eax, [ecx + eax] ; get char in kdbus/shift_kdbus array
+	cmp al, 0 ; skip unsued keys
+	je .start
 
 	cmp byte[keystatus], 00000001b ; check capslock
 	je .use_print_debug
@@ -132,6 +131,8 @@ keyboard_handler:
 .key_release:
 	cmp ax, 0xAA ; break code for shift, release shift?
 	je .release_shift
+	cmp ax, 0x9D ; break code for ctrl, release ctrl?
+	je .release_ctrl
 	jmp .start
 	ret
 
@@ -201,6 +202,29 @@ keyboard_handler:
 	mov ecx, shift_kdbus
 	jmp .start
 
+.release_shift:
+	mov ecx, kdbus
+	jmp .start
+
+.press_ctrl:
+	mov byte[keystatus], 00000010b
+	jmp .start
+
+.release_ctrl:
+	xor byte[keystatus], 00000010b
+	jmp .start
+
+.switch_screen:
+	cmp ax, 0x02 ; 1 pressed ?
+	je .load_first_screen
+	cmp ax, 0x03 ; 2 pressed ?
+	je .load_second_screen
+	cmp ax, 0x04 ; 3 pressed ?
+	je .load_third_screen
+	cmp ax, 0x05 ; 4 pressed ?
+	je .load_fourth_screen
+	jmp .start
+
 .press_caps:
 	cmp byte[keystatus], 00000001b
 	je .unset_debug
@@ -216,6 +240,3 @@ keyboard_handler:
 	mov byte[keystatus], 00000000b
 	jmp .start
 
-.release_shift:
-	mov ecx, kdbus
-	jmp .start
