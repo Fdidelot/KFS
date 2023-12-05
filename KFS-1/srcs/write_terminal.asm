@@ -7,7 +7,7 @@
 	global terminal_putchar
 	global terminal_getidx
 
-    section .data
+	section .data
 VGA_WIDTH equ 80
 VGA_HEIGHT equ 25
 
@@ -16,7 +16,7 @@ terminal_cursor_pos:
 terminal_column db 0
 terminal_row db 0
 
-    section .text
+	section .text
 ; IN = dl: y, dh: x
 ; OUT = dx: Index with offset 0xB8000 at VGA buffer
 ; Other registers preserved
@@ -93,7 +93,7 @@ fill_line_with_space:
 	mov al, 0
 	call terminal_putentryat
 	ret
-	
+
 ; IN = al: ASCII char
 terminal_putchar:
 	mov dx, [terminal_cursor_pos] ; This loads terminal_column at DH, and terminal_row at DL
@@ -121,7 +121,7 @@ terminal_putchar:
 .cursor_moved:
 	; Store new cursor position 
 	mov [terminal_cursor_pos], dx
- 	call set_cursor_pos
+	call set_cursor_pos
 
 	ret
  

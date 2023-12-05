@@ -36,4 +36,4 @@ print_debug:
 	call terminal_write
 
 	ret
-	
+

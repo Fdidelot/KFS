@@ -87,7 +87,7 @@ set_terminal_colors:
 	push edx
 
 	mov dh, VGA_COLOR_LIGHT_GREY
-        mov dl, VGA_COLOR_BLACK
+	mov dl, VGA_COLOR_BLACK
 
 	shl dl, 4
 	or dl, dh
@@ -95,21 +95,21 @@ set_terminal_colors:
 	mov [terminal_color], dl ; set terminal color for the first time
 
 	mov dh, VGA_COLOR_LIGHT_BLUE
-        mov dl, VGA_COLOR_BLACK
+	mov dl, VGA_COLOR_BLACK
 
 	shl dl, 4
 	or dl, dh
 	mov [second_terminal_color], dl
 
 	mov dh, VGA_COLOR_LIGHT_GREEN
-        mov dl, VGA_COLOR_BLACK
+	mov dl, VGA_COLOR_BLACK
 
 	shl dl, 4
 	or dl, dh
 	mov [third_terminal_color], dl
 
 	mov dh, VGA_COLOR_LIGHT_MAGENTA
-        mov dl, VGA_COLOR_BLACK
+	mov dl, VGA_COLOR_BLACK
 
 	shl dl, 4
 	or dl, dh
@@ -131,7 +131,7 @@ add_headers:
 	mov byte[fourth_screen + edx], cl
 
 	cmp byte[esi + edx], 0
-	je .end			
+	je .end
 	inc edx
 	jmp .loop
 .end:
@@ -147,7 +147,7 @@ save_screen:
 
 	xor eax ,eax
 .loop:
-	cmp eax, 4000	
+	cmp eax, 4000
 	jg .end
 	mov dl, byte[0xB8000 + eax]
 	shr eax, 1

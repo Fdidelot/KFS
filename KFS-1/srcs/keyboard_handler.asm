@@ -133,9 +133,9 @@ keyboard_handler:
 	call terminal_putchar
 
 .key_release:
-	cmp ax, 0xB8 ; break code for shift, release shift?
+	cmp ax, 0xB8 ; break code for alt, release alt?
 	je .release_alt
-	cmp ax, 0xAA ; break code for alt, release alt?
+	cmp ax, 0xAA ; break code for shift, release shift?
 	je .release_shift
 	cmp ax, 0x9D ; break code for ctrl, release ctrl?
 	je .release_ctrl
@@ -144,7 +144,7 @@ keyboard_handler:
 
 .load_first_screen:
 	call save_screen
-	
+
 	mov esi, first_screen
 	mov byte[screen_id], 1
 

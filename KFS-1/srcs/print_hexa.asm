@@ -128,5 +128,5 @@ print_hexa:
 	and eax, 0xf
 	call which_number
 	call terminal_putchar
-	
+
 	ret
