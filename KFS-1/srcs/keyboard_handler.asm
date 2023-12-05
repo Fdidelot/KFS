@@ -14,6 +14,7 @@
 	extern screen_id
 	extern save_screen
 	extern load_pos
+	extern print_registers
 
 	; Global section
 	global keyboard_handler
@@ -107,29 +108,34 @@ keyboard_handler:
 	jz .start
 	in al, 0x60 ; read input
 
-	cmp ax, 0x3A ; Caps Lock pressed?
-	je .press_caps
 	cmp ax, 0x2A ; shift pressed?
 	je .press_shift
 	cmp ax, 0x1D ; CTRL pressed?
 	je .press_ctrl
+	cmp ax, 0x38 ; ALT pressed?
+	je .press_alt
 	cmp ax, 0x80 ; check release
 	jg .key_release
 
 	test byte[keystatus], 00000010b ; check switch screen
 	jnz .switch_screen
-	
+
+	test byte[keystatus], 00000001b ; check debug mode
+	jnz .debug_mode
+
 	mov eax, [ecx + eax] ; get char in kdbus/shift_kdbus array
 	cmp al, 0 ; skip unsued keys
 	je .start
 
-	test byte[keystatus], 00000001b ; check capslock
-	jnz .use_print_debug
+	test byte[keystatus], 00000100b ; check print_hex
+	jmp .print_hexa
 
 	call terminal_putchar
 
 .key_release:
-	cmp ax, 0xAA ; break code for shift, release shift?
+	cmp ax, 0xB8 ; break code for shift, release shift?
+	je .release_alt
+	cmp ax, 0xAA ; break code for alt, release alt?
 	je .release_shift
 	cmp ax, 0x9D ; break code for ctrl, release ctrl?
 	je .release_ctrl
@@ -191,11 +197,13 @@ keyboard_handler:
 
 	call handle_key_and_display
 	jmp .start
-	
-.use_print_debug:	
-	push esi
-	call print_debug
-	pop esi
+
+.press_alt:
+	or byte[keystatus], 00000001b
+	jmp .start
+
+.release_alt:
+	xor byte[keystatus], 00000001b
 	jmp .start
 
 .press_shift:
@@ -214,6 +222,38 @@ keyboard_handler:
 	xor byte[keystatus], 00000010b
 	jmp .start
 
+.set_mode_print_hex
+	or byte[keystatus], 00000100b
+	jmp .start
+	
+.unset_mode_print_hex
+	xor byte[keystatus], 00000100b
+	jmp .start
+
+.mode_print_hex
+	test byte[keystatus], 00000100b
+	jnz .unset_mode_print_hex
+	jmp .set_mode_print_hex
+
+.print_hexa
+	pusha
+	call print_debug
+	popa
+	jmp .start
+
+.print_register
+	pusha
+	call print_registers
+	popa
+	jmp .start
+
+.debug_mode:
+	cmp ax, 0x02 ; 1 pressed ?
+	je .mode_print_hex
+	cmp ax, 0x03 ; 2 pressed ?
+	je .print_register
+	jmp .start
+
 .switch_screen:
 	cmp ax, 0x02 ; 1 pressed ?
 	je .load_first_screen
@@ -223,20 +263,5 @@ keyboard_handler:
 	je .load_third_screen
 	cmp ax, 0x05 ; 4 pressed ?
 	je .load_fourth_screen
-	jmp .start
-
-.press_caps:
-	cmp byte[keystatus], 00000001b ; Do A TEST
-	je .unset_debug
-	cmp byte[keystatus], 00000000b ; DO A TEST
-	je .set_debug
-	jmp .start
-
-.set_debug:
-	or byte[keystatus], 00000001b
-	jmp .start
-
-.unset_debug:
-	mov byte[keystatus], 00000000b ; PROBABLY A XOR
 	jmp .start
 

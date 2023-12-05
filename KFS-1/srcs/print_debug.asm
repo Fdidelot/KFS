@@ -34,7 +34,6 @@ print_debug:
 
 	mov esi, debug_string3
 	call terminal_write
-	call print_registers
 
 	ret
 	
