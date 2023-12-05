@@ -128,7 +128,7 @@ keyboard_handler:
 	je .start
 
 	test byte[keystatus], 00000100b ; check print_hex
-	jmp .print_hexa
+	jnz .print_hexa
 
 	call terminal_putchar
 

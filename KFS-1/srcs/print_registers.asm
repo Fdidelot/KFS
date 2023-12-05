@@ -7,7 +7,7 @@
 	global print_registers
 
 	section .data
-	print_eax1 db "eax(0x", 0
+	print_eax1 db 0xA, "eax(0x", 0
 	print_eax2 db ")", 0xA, 0
 	print_ebx1 db "ebx(0x", 0
 	print_ebx2 db ")", 0xA, 0

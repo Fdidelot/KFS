@@ -8,9 +8,9 @@
 	global print_debug
 
 	section .data
-	debug_string1 db "value(0x", 0
+	debug_string1 db 0xA, "value(0x", 0
 	debug_string2 db ") char(", 0
-	debug_string3 db ")", 0xA, 0
+	debug_string3 db ")", 0
 
 	section .text
 print_debug:
