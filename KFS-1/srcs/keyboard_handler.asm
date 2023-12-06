@@ -222,26 +222,26 @@ keyboard_handler:
 	xor byte[keystatus], 00000010b
 	jmp .start
 
-.set_mode_print_hex
+.set_mode_print_hex:
 	or byte[keystatus], 00000100b
 	jmp .start
 	
-.unset_mode_print_hex
+.unset_mode_print_hex:
 	xor byte[keystatus], 00000100b
 	jmp .start
 
-.mode_print_hex
+.mode_print_hex:
 	test byte[keystatus], 00000100b
 	jnz .unset_mode_print_hex
 	jmp .set_mode_print_hex
 
-.print_hexa
+.print_hexa:
 	pusha
 	call print_debug
 	popa
 	jmp .start
 
-.print_register
+.print_register:
 	pusha
 	call print_registers
 	popa
