@@ -57,4 +57,7 @@ $(OBJS_DIR):
 qemu: all
 	qemu-system-i386 kfs.iso
 
+debug: all
+	qemu-system-i386 -s -S kfs.iso
+
 .PHONY: all clean fclean re qemu
