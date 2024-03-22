@@ -87,7 +87,7 @@ set_terminal_colors:
 	push edx
 
 	mov dh, VGA_COLOR_LIGHT_GREY
-	mov dl, VGA_COLOR_RED
+	mov dl, VGA_COLOR_BLACK
 
 	shl dl, 4
 	or dl, dh

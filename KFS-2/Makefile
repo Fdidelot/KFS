@@ -12,7 +12,8 @@ SRCS =	boot.asm \
 		print_registers.asm \
 		setup_screen.asm \
 		write_terminal.asm \
-		gdt.asm
+		gdt.asm \
+		printk.asm
 
 NA = nasm
 NAFL = -felf32

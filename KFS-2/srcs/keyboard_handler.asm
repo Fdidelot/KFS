@@ -15,6 +15,7 @@
 	extern save_screen
 	extern load_pos
 	extern print_registers
+	extern printk
 
 	; Global section
 	global keyboard_handler
@@ -252,6 +253,8 @@ keyboard_handler:
 	je .mode_print_hex
 	cmp ax, 0x03 ; 2 pressed ?
 	je .print_register
+	cmp ax, 0x04 ; 3 pressed ?
+	call printk
 	jmp .start
 
 .switch_screen:

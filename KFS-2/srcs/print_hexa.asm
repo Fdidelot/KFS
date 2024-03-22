@@ -1,5 +1,7 @@
 	extern terminal_putchar
+
 	global print_hexa
+	global which_number
 
 which_number:
 	cmp eax, 0x0
