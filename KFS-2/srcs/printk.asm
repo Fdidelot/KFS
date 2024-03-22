@@ -1,5 +1,8 @@
+	; Global section
 	global printk
 
+	; Extern section
+	extern keyboard_handler.release_alt
 	extern print_hexa
 	extern terminal_write
 	extern which_number
@@ -12,7 +15,11 @@
 	print_newline db 0xA, 0
 	print_pipe db "|", 0
 
+PRINTK_START_ADDRESS equ 0x0
+PRINTK_END_ADDRESS equ 0xFF800
+
 	section .text
+; print a char un ascii, replace by dot if non-printable
 print_char:
 	mov eax, edx
 	cmp al, 31
@@ -26,6 +33,7 @@ print_char:
 	call terminal_putchar
 	ret
 
+; print a byte in ascii
 print_ascii:
 	xor ecx, ecx
 .loop:
@@ -43,19 +51,27 @@ print_ascii:
 .end:
 	ret
 
+; print a byte
 print_byte:
 	mov eax, edx
-	and eax, 0xf0
+	and eax, 0xf0 ; keep only left part of byte
 	shr eax, 4
 	call which_number
-	call terminal_putchar
+
+	push edx
+	call terminal_putchar ; print left part
+	pop edx
 
 	mov eax, edx
-	and eax, 0xf
+	and eax, 0xf ; keep only right part of byte
 	call which_number
-	call terminal_putchar
+
+	push edx
+	call terminal_putchar ; print right part
+	pop edx
 	ret
 
+; print 16 bytes in hexa, 2 by 2 
 print_bytes:
 	xor ecx, ecx
 .loop:
@@ -70,7 +86,9 @@ print_bytes:
 	pusha
 	xor edx, edx
 	mov dl, byte[eax + ecx]
+	push edx
 	call print_byte
+	pop edx
 	popa
 
 	inc ecx
@@ -81,27 +99,27 @@ print_bytes:
 ; print kernel memory
 printk:
 	pusha
- 	xor eax, eax
+	mov eax, PRINTK_START_ADDRESS
 
 .loop:
- 	cmp eax, 0x40
+ 	cmp eax, PRINTK_END_ADDRESS ; end address to print
  	jg .end
 	mov edi, eax
 
 	push eax
-	call print_hexa
+	call print_hexa ; print address
 	mov esi, print_double_dot
 	call terminal_write
 	pop eax
 
 	pusha 
-	call print_bytes
+	call print_bytes ; print content in hex
 	mov esi, print_space
 	call terminal_write
 
 	mov esi, print_pipe
 	call terminal_write
-	call print_ascii
+	call print_ascii ; print content in ascii
 	mov esi, print_pipe
 	call terminal_write
 
@@ -109,8 +127,30 @@ printk:
 	call terminal_write
 	popa
 
+	push eax
+	cmp eax, PRINTK_START_ADDRESS
+	je .next
+	cmp eax, PRINTK_END_ADDRESS
+	je .end
+	and eax, 255 ; wait every 16 lines (eax % 256 == 0)
+	cmp eax, 0
+	jne .next
+.start:
+	xor eax, eax
+	in al, 0x64 ; wait entries
+	test al, 0b00000001 ; bit 1 is no entry
+	jz .start
+	in al, 0x60 ; read input
+
+	cmp ax, 0x1C ; enter pressed
+	jne .start
+
+.next:
+	pop eax
 	add eax, 16
 	jmp .loop
 .end:
+	call keyboard_handler.release_alt ; force key release
+
 	popa
 	ret

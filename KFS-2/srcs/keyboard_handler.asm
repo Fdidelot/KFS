@@ -19,6 +19,7 @@
 
 	; Global section
 	global keyboard_handler
+	global keyboard_handler.release_alt
 
 	section .data
 kdbus:

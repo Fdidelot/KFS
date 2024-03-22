@@ -61,4 +61,4 @@ qemu: all
 debug: all
 	qemu-system-i386 -s -S kfs.iso
 
-.PHONY: all clean fclean re qemu
+.PHONY: all clean fclean re qemu debug
