@@ -13,7 +13,8 @@ SRCS =	boot.asm \
 		setup_screen.asm \
 		write_terminal.asm \
 		gdt.asm \
-		printk.asm
+		printk.asm \
+		readline.asm
 
 NA = nasm
 NAFL = -felf32
@@ -58,7 +59,10 @@ $(OBJS_DIR):
 qemu: all
 	qemu-system-i386 kfs.iso
 
-debug: all
+gdbdebug: all
 	qemu-system-i386 -s -S kfs.iso
+
+qemudebug: all
+	qemu-system-i386 -cdrom kfs.iso -monitor stdio
 
 .PHONY: all clean fclean re qemu debug

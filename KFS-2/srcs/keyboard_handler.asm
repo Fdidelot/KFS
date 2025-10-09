@@ -1,27 +1,29 @@
-	; Extern section
-	extern handle_key_and_display
-	extern terminal_color
-	extern first_terminal_color
-	extern second_terminal_color
-	extern third_terminal_color
-	extern fourth_terminal_color
-	extern terminal_putchar
-	extern print_debug
-	extern first_screen
-	extern second_screen
-	extern third_screen
-	extern fourth_screen
-	extern screen_id
-	extern save_screen
-	extern load_pos
-	extern print_registers
-	extern printk
+; Extern section
+extern handle_key_and_display
+extern terminal_color
+extern first_terminal_color
+extern second_terminal_color
+extern third_terminal_color
+extern fourth_terminal_color
+extern terminal_putchar
+extern print_debug
+extern first_screen
+extern second_screen
+extern third_screen
+extern fourth_screen
+extern screen_id
+extern save_screen
+extern load_pos
+extern print_registers
+extern printk
+extern readline
 
-	; Global section
-	global keyboard_handler
-	global keyboard_handler.release_alt
+; Global section
+global keyboard_handler
+global keyboard_handler.release_alt
+global keystatus
 
-	section .data
+section .data
 kdbus:
 	db 0,  0, "1", "2", "3", "4", "5", "6", "7", "8" ; 9
 	db "9", "0", "-", "=", 0 ; Backspace
@@ -97,11 +99,12 @@ shift_kdbus db 0,  0, "!", "@", "#", "$", "%", "^", "&", "*", \
 	0, \
 	0 ; All other keys are undefined
 
-keystatus: dd 0
+keystatus: db 0
 
-	section .text
+section .text
 keyboard_handler:
 	mov ecx, kdbus
+	;mov byte[keystatus], 0
 
 .start:
 	xor eax, eax
@@ -110,14 +113,16 @@ keyboard_handler:
 	jz .start
 	in al, 0x60 ; read input
 
-	cmp ax, 0x2A ; shift pressed?
+	cmp al, 0x2A ; shift pressed?
 	je .press_shift
-	cmp ax, 0x1D ; CTRL pressed?
+	cmp al, 0x1D ; CTRL pressed?
 	je .press_ctrl
-	cmp ax, 0x38 ; ALT pressed?
+	cmp al, 0x38 ; ALT pressed?
 	je .press_alt
-	cmp ax, 0x80 ; check release
-	jg .key_release
+	cmp al, 0x80 ; check release
+	ja .key_release
+	cmp al, 0x1C ; enter pressed
+	je .press_enter
 
 	test byte[keystatus], 00000010b ; check switch screen
 	jnz .switch_screen
@@ -126,23 +131,33 @@ keyboard_handler:
 	jnz .debug_mode
 
 	mov eax, [ecx + eax] ; get char in kdbus/shift_kdbus array
-	cmp al, 0 ; skip unsued keys
+	cmp al, 0 ; skip unused keys
 	je .start
 
 	test byte[keystatus], 00000100b ; check print_hex
 	jnz .print_hexa
 
+	test byte[keystatus], 00001000b ; check print_memory
+	jnz .print_memory
+
+
 	call terminal_putchar
+	jmp .start
+
+.press_enter:
+	mov eax, [ecx + eax] ; get char in kdbus/shift_kdbus array
+	;call readline
+	call terminal_putchar
+	jmp .start
 
 .key_release:
-	cmp ax, 0xB8 ; break code for alt, release alt?
+	cmp al, 0xB8 ; break code for alt, release alt?
 	je .release_alt
-	cmp ax, 0xAA ; break code for shift, release shift?
+	cmp al, 0xAA ; break code for shift, release shift?
 	je .release_shift
-	cmp ax, 0x9D ; break code for ctrl, release ctrl?
+	cmp al, 0x9D ; break code for ctrl, release ctrl?
 	je .release_ctrl
 	jmp .start
-	ret
 
 .load_first_screen:
 	call save_screen
@@ -249,23 +264,39 @@ keyboard_handler:
 	popa
 	jmp .start
 
-.debug_mode:
-	cmp ax, 0x02 ; 1 pressed ?
-	je .mode_print_hex
-	cmp ax, 0x03 ; 2 pressed ?
-	je .print_register
-	cmp ax, 0x04 ; 3 pressed ?
+.set_mode_print_memory:
+	or byte[keystatus], 00001000b
+	jmp .start
+
+.unset_mode_print_memory:
+	xor byte[keystatus], 00001000b
+	jmp .start
+
+.mode_print_memory:
+	test byte[keystatus], 00001000b
+	jnz .unset_mode_print_memory
+	jmp .set_mode_print_memory
+
+.print_memory:
 	call printk
+
+.debug_mode:
+	cmp al, 0x02 ; 1 pressed ?
+	je .mode_print_hex
+	cmp al, 0x03 ; 2 pressed ?
+	je .print_register
+	cmp al, 0x04 ; 3 pressed ?
+	je .mode_print_memory
 	jmp .start
 
 .switch_screen:
-	cmp ax, 0x02 ; 1 pressed ?
+	cmp al, 0x02 ; 1 pressed ?
 	je .load_first_screen
-	cmp ax, 0x03 ; 2 pressed ?
+	cmp al, 0x03 ; 2 pressed ?
 	je .load_second_screen
-	cmp ax, 0x04 ; 3 pressed ?
+	cmp al, 0x04 ; 3 pressed ?
 	je .load_third_screen
-	cmp ax, 0x05 ; 4 pressed ?
+	cmp al, 0x05 ; 4 pressed ?
 	je .load_fourth_screen
 	jmp .start
 

@@ -2,11 +2,13 @@
 	global printk
 
 	; Extern section
+	extern keyboard_handler
 	extern keyboard_handler.release_alt
 	extern print_hexa
 	extern terminal_write
 	extern which_number
 	extern terminal_putchar
+	extern keystatus
 
 	section .data
 	print_hex_suffix db "0x", 0
@@ -16,7 +18,7 @@
 	print_pipe db "|", 0
 
 PRINTK_START_ADDRESS equ 0x0
-PRINTK_END_ADDRESS equ 0xFF800
+PRINTK_END_ADDRESS equ 0x0F800
 
 	section .text
 ; print a char un ascii, replace by dot if non-printable
@@ -98,7 +100,7 @@ print_bytes:
 
 ; print kernel memory
 printk:
-	pusha
+	;pusha
 	mov eax, PRINTK_START_ADDRESS
 
 .loop:
@@ -112,7 +114,7 @@ printk:
 	call terminal_write
 	pop eax
 
-	pusha 
+	pusha
 	call print_bytes ; print content in hex
 	mov esi, print_space
 	call terminal_write
@@ -142,7 +144,15 @@ printk:
 	jz .start
 	in al, 0x60 ; read input
 
-	cmp ax, 0x1C ; enter pressed
+	cmp al, 0x38 ; ALT pressed?
+	je .press_alt
+	cmp al, 0x80 ; check release
+	ja .key_release
+
+	test byte[keystatus], 00000001b ; alt is pressed
+	jnz .is_three_pressed
+
+	cmp al, 0x1C ; enter pressed
 	jne .start
 
 .next:
@@ -150,7 +160,25 @@ printk:
 	add eax, 16
 	jmp .loop
 .end:
-	call keyboard_handler.release_alt ; force key release
+	pop eax
+	mov byte [keystatus], 0
+	;popa
+	jmp keyboard_handler ;.release_alt
 
-	popa
-	ret
+.key_release:
+	cmp al, 0xB8 ; break code for alt
+	je .release_alt
+	jmp .start
+
+.press_alt:
+	or byte[keystatus], 00000001b
+	jmp .start
+
+.release_alt:
+	xor byte[keystatus], 00000001b
+	jmp .start
+
+.is_three_pressed:
+	cmp al, 0x04
+	je .end
+	jmp .start

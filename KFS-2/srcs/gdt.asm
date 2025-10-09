@@ -1,21 +1,29 @@
-[BITS 32]
 extern setup_gdt
+;extern stack_top
+
+; Sélecteurs
+KERNEL_CS equ 0x08
+KERNEL_DS equ 0x10
+KERNEL_SS equ 0x18
+USER_CS   equ 0x20
+USER_DS   equ 0x28
+USER_SS   equ 0x30
 
 setup_gdt:
     ; -----------------------
     ; Copier la GDT en RAM (ici on suppose que tu as une GDT statique)
     ; -----------------------
     ; Adresse de la GDT
-    mov eax, gdt_table
-    mov [gdtr_base], eax
-    mov word [gdtr_limit], gdt_end - gdt_table - 1
+    ;mov eax, gdt_table
+    ;mov [gdtr_base], eax
+    ;mov word [gdtr_limit], gdt_end - gdt_table - 1
 
     lgdt [gdtr]         ; Charger GDTR
 
     ; Activer PE
-    mov eax, cr0
-    or  eax, 1
-    mov cr0, eax
+    ;mov eax, cr0
+    ;or  eax, 1
+    ;mov cr0, eax
 
     ; Far jump pour charger CS
     jmp KERNEL_CS:protected_gdt_entry
@@ -29,9 +37,11 @@ protected_gdt_entry:
     mov gs, ax
     mov ax, KERNEL_SS
     mov ss, ax
+
     ret
 ; ------- GDT -------
-[BITS 16]
+section .gdt
+align 8
 gdt_table:
     ; Descripteur NULL (8 bytes)
     dq 0
@@ -86,13 +96,13 @@ gdt_table:
 gdt_end:
 
 gdtr:
-    gdtr_limit: dw gdt_end - gdt_table - 1
-    gdtr_base:  dd 0x00000800
+    dw gdt_end - gdt_table - 1
+	dd gdt_table
+    ;gdtr_limit: dw gdt_end - gdt_table - 1
+    ;gdtr_base:  dd 0x00000800
 
-; Sélecteurs
-KERNEL_CS equ 0x08
-KERNEL_DS equ 0x10
-KERNEL_SS equ 0x18
-USER_CS   equ 0x20
-USER_DS   equ 0x28
-USER_SS   equ 0x30
+;section .bss
+;align 16
+;stack_bottom:
+;	resb 16384 ; 16 KiB
+;stack_top:
