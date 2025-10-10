@@ -101,10 +101,17 @@ shift_kdbus db 0,  0, "!", "@", "#", "$", "%", "^", "&", "*", \
 
 keystatus: db 0
 
+section .bss
+readline_buffer resb 79
+readline_index  resb 1
+is_readline_mode resb 1
+
 section .text
 keyboard_handler:
 	mov ecx, kdbus
-	;mov byte[keystatus], 0
+	mov byte[is_readline_mode], 1
+	mov al, 0x3E
+	call terminal_putchar
 
 .start:
 	xor eax, eax
@@ -121,8 +128,6 @@ keyboard_handler:
 	je .press_alt
 	cmp al, 0x80 ; check release
 	ja .key_release
-	cmp al, 0x1C ; enter pressed
-	je .press_enter
 
 	test byte[keystatus], 00000010b ; check switch screen
 	jnz .switch_screen
@@ -140,14 +145,42 @@ keyboard_handler:
 	test byte[keystatus], 00001000b ; check print_memory
 	jnz .print_memory
 
+	cmp byte[is_readline_mode], 1
+	je .readline_mode
 
-	call terminal_putchar
 	jmp .start
 
-.press_enter:
-	mov eax, [ecx + eax] ; get char in kdbus/shift_kdbus array
-	;call readline
+.readline_mode:
+	cmp al, 0xA ; enter pressed
+	je .readline_done
+
+	xor ebx, ebx ; clear ebx
+	mov bl, [readline_index] ; put index in ebx
+	mov [readline_buffer + ebx], al ; add char to buffer + index
+	inc byte[readline_index]
 	call terminal_putchar
+
+	mov bl, [readline_index]
+	cmp bl, 79 ; end of line?
+	je .readline_done
+
+	jmp .start
+
+.readline_done:
+	cmp byte[readline_index], 0 ; print enter if index != 0
+	je .skip
+	cmp byte[readline_index], 79 ; print enter if index != buffer size
+	je .skip
+
+	call print_enter
+
+.skip
+
+	call print_readline
+	call print_enter
+	mov al, 0x3E
+	call terminal_putchar
+	call clear_readline_buffer
 	jmp .start
 
 .key_release:
@@ -217,10 +250,12 @@ keyboard_handler:
 
 .press_alt:
 	or byte[keystatus], 00000001b
+	mov byte[is_readline_mode], 0
 	jmp .start
 
 .release_alt:
 	xor byte[keystatus], 00000001b
+	mov byte[is_readline_mode], 1
 	jmp .start
 
 .press_shift:
@@ -233,10 +268,12 @@ keyboard_handler:
 
 .press_ctrl:
 	or byte[keystatus], 00000010b
+	mov byte[is_readline_mode], 0
 	jmp .start
 
 .release_ctrl:
 	xor byte[keystatus], 00000010b
+	mov byte[is_readline_mode], 1
 	jmp .start
 
 .set_mode_print_hex:
@@ -245,6 +282,9 @@ keyboard_handler:
 	
 .unset_mode_print_hex:
 	xor byte[keystatus], 00000100b
+	call print_enter
+	mov al, 0x3E
+	call terminal_putchar
 	jmp .start
 
 .mode_print_hex:
@@ -262,6 +302,8 @@ keyboard_handler:
 	pusha
 	call print_registers
 	popa
+	mov al, 0x3E
+	call terminal_putchar
 	jmp .start
 
 .set_mode_print_memory:
@@ -300,3 +342,48 @@ keyboard_handler:
 	je .load_fourth_screen
 	jmp .start
 
+print_readline:
+	push eax
+	push ecx
+
+	xor ecx, ecx
+
+.loop:
+	cmp ecx, 79
+	jge .end
+
+	mov al, [readline_buffer + ecx]
+	cmp al, 0
+	je .end
+	call terminal_putchar
+
+	inc ecx
+	jmp .loop
+
+.end:
+	pop ecx
+	pop eax
+	ret
+
+clear_readline_buffer:
+	push ecx
+
+	xor ecx, ecx
+.clear_loop:
+	cmp ecx, 79
+	jge .done
+
+	mov byte[readline_buffer + ecx], 0
+	inc ecx
+	jmp .clear_loop
+
+.done:
+	mov byte[readline_index], 0
+
+	pop ecx
+	ret
+
+print_enter:
+	mov al, 0xA
+	call terminal_putchar
+	ret
