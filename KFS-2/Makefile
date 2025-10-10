@@ -14,7 +14,8 @@ SRCS =	boot.asm \
 		write_terminal.asm \
 		gdt.asm \
 		printk.asm \
-		readline.asm
+		readline.asm \
+		ft_strcmp.asm
 
 NA = nasm
 NAFL = -felf32

@@ -101,6 +101,8 @@ shift_kdbus db 0,  0, "!", "@", "#", "$", "%", "^", "&", "*", \
 
 keystatus: db 0
 
+reboot_str db "reboot", 0
+
 section .bss
 readline_buffer resb 79
 readline_index  resb 1
