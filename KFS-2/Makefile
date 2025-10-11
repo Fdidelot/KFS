@@ -36,7 +36,7 @@ $(NAME_ISO): $(NAME)
 	mkdir -p $(ISO_DIR)/boot/grub
 	cp $(NAME) $(ISO_DIR)/boot/$(NAME)
 	cp grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
-	grub-mkrescue -o $(NAME_ISO) $(ISO_DIR)
+	grub-mkrescue -o $(NAME_ISO) $(ISO_DIR) -d /usr/lib/grub/i386-pc
 
 clean:
 	rm -rf $(OBJS_DIR)
