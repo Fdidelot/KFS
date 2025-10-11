@@ -17,6 +17,9 @@ extern load_pos
 extern print_registers
 extern printk
 extern readline
+extern ft_strcmp
+extern reboot
+extern help
 
 ; Global section
 global keyboard_handler
@@ -101,6 +104,7 @@ shift_kdbus db 0,  0, "!", "@", "#", "$", "%", "^", "&", "*", \
 
 keystatus: db 0
 
+help_str db "help", 0
 reboot_str db "reboot", 0
 
 section .bss
@@ -173,6 +177,19 @@ keyboard_handler:
 	je .skip
 	cmp byte[readline_index], 79 ; print enter if index != buffer size
 	je .skip
+
+	push edi
+	push esi
+	push ecx
+	mov edi, reboot_str
+	mov esi, readline_buffer
+	call ft_strcmp
+	pop ecx
+	pop esi
+	pop edi
+
+	cmp eax, 0
+	je reboot
 
 	call print_enter
 
@@ -389,3 +406,4 @@ print_enter:
 	mov al, 0xA
 	call terminal_putchar
 	ret
+

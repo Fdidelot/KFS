@@ -15,7 +15,8 @@ SRCS =	boot.asm \
 		gdt.asm \
 		printk.asm \
 		readline.asm \
-		ft_strcmp.asm
+		ft_strcmp.asm \
+		reboot.asm
 
 NA = nasm
 NAFL = -felf32
