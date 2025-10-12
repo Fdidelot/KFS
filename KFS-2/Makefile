@@ -16,6 +16,9 @@ SRCS =	boot.asm \
 		printk.asm \
 		readline.asm \
 		ft_strcmp.asm \
+		terminal_putstr.asm \
+		handle_command.asm \
+		help.asm \
 		reboot.asm
 
 NA = nasm

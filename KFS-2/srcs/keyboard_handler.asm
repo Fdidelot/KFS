@@ -1,30 +1,24 @@
 ; Extern section
 extern handle_key_and_display
 extern terminal_color
-extern first_terminal_color
-extern second_terminal_color
-extern third_terminal_color
-extern fourth_terminal_color
+;extern first_terminal_color
+;extern second_terminal_color
+;extern third_terminal_color
+;extern fourth_terminal_color
 extern terminal_putchar
+extern terminal_putstr
 extern print_debug
-extern first_screen
-extern second_screen
-extern third_screen
-extern fourth_screen
-extern screen_id
-extern save_screen
-extern load_pos
+;extern first_screen
+;extern second_screen
+;extern third_screen
+;extern fourth_screen
+;extern screen_id
+;extern save_screen
+;extern load_pos
 extern print_registers
 extern printk
-extern readline
-extern ft_strcmp
-extern reboot
+extern handle_command
 extern help
-
-; Global section
-global keyboard_handler
-global keyboard_handler.release_alt
-global keystatus
 
 section .data
 kdbus:
@@ -102,10 +96,12 @@ shift_kdbus db 0,  0, "!", "@", "#", "$", "%", "^", "&", "*", \
 	0, \
 	0 ; All other keys are undefined
 
+global keystatus
 keystatus: db 0
 
-help_str db "help", 0
-reboot_str db "reboot", 0
+intro_str:
+	db "Welcome! Use 'help' for a list of commands", 10
+	db 0
 
 section .bss
 readline_buffer resb 79
@@ -113,7 +109,10 @@ readline_index  resb 1
 is_readline_mode resb 1
 
 section .text
+global keyboard_handler
 keyboard_handler:
+	mov edi, intro_str
+	call terminal_putstr
 	mov ecx, kdbus
 	mov byte[is_readline_mode], 1
 	mov al, 0x3E
@@ -128,15 +127,15 @@ keyboard_handler:
 
 	cmp al, 0x2A ; shift pressed?
 	je .press_shift
-	cmp al, 0x1D ; CTRL pressed?
-	je .press_ctrl
+	;cmp al, 0x1D ; CTRL pressed?
+	;je .press_ctrl
 	cmp al, 0x38 ; ALT pressed?
 	je .press_alt
 	cmp al, 0x80 ; check release
 	ja .key_release
 
-	test byte[keystatus], 00000010b ; check switch screen
-	jnz .switch_screen
+	;test byte[keystatus], 00000010b ; check switch screen
+	;jnz .switch_screen
 
 	test byte[keystatus], 00000001b ; check debug mode
 	jnz .debug_mode
@@ -148,8 +147,8 @@ keyboard_handler:
 	test byte[keystatus], 00000100b ; check print_hex
 	jnz .print_hexa
 
-	test byte[keystatus], 00001000b ; check print_memory
-	jnz .print_memory
+	;test byte[keystatus], 00001000b ; check print_memory
+	;jnz .print_memory
 
 	cmp byte[is_readline_mode], 1
 	je .readline_mode
@@ -179,21 +178,24 @@ keyboard_handler:
 	je .skip
 
 	push edi
-	push esi
-	push ecx
-	mov edi, reboot_str
-	mov esi, readline_buffer
-	call ft_strcmp
-	pop ecx
-	pop esi
+	mov edi, readline_buffer
+	call handle_command
 	pop edi
+	;push esi
+	;push ecx
+	;mov edi, reboot_str
+	;mov esi, readline_buffer
+	;call ft_strcmp
+	;pop ecx
+	;pop esi
+	;pop edi
 
-	cmp eax, 0
-	je reboot
+	;cmp eax, 0
+	;je reboot
 
 	call print_enter
 
-.skip
+.skip:
 
 	call print_readline
 	call print_enter
@@ -207,65 +209,65 @@ keyboard_handler:
 	je .release_alt
 	cmp al, 0xAA ; break code for shift, release shift?
 	je .release_shift
-	cmp al, 0x9D ; break code for ctrl, release ctrl?
-	je .release_ctrl
+	;cmp al, 0x9D ; break code for ctrl, release ctrl?
+	;je .release_ctrl
 	jmp .start
 
-.load_first_screen:
-	call save_screen
-
-	mov esi, first_screen
-	mov byte[screen_id], 1
-
-	push eax
-	mov al, byte[first_terminal_color]
-	mov byte[terminal_color], al
-	pop eax
-
-	call handle_key_and_display
-	jmp .start
-
-.load_second_screen:
-	call save_screen
-
-	mov esi, second_screen
-	mov byte[screen_id], 2
-
-	push eax
-	mov al, byte[second_terminal_color]
-	mov byte[terminal_color], al
-	pop eax
-
-	call handle_key_and_display
-	jmp .start
-
-.load_third_screen:
-	call save_screen
-
-	mov esi, third_screen
-	mov byte[screen_id], 4
-
-	push eax
-	mov al, byte[third_terminal_color]
-	mov byte[terminal_color], al
-	pop eax
-
-	call handle_key_and_display
-	jmp .start
-
-.load_fourth_screen:
-	call save_screen
-
-	mov esi, fourth_screen
-	mov byte[screen_id], 8
-
-	push eax
-	mov al, byte[fourth_terminal_color]
-	mov byte[terminal_color], al
-	pop eax
-
-	call handle_key_and_display
-	jmp .start
+;.load_first_screen:
+;	call save_screen
+;
+;	mov esi, first_screen
+;	mov byte[screen_id], 1
+;
+;	push eax
+;	mov al, byte[first_terminal_color]
+;	mov byte[terminal_color], al
+;	pop eax
+;
+;	call handle_key_and_display
+;	jmp .start
+;
+;.load_second_screen:
+;	call save_screen
+;
+;	mov esi, second_screen
+;	mov byte[screen_id], 2
+;
+;	push eax
+;	mov al, byte[second_terminal_color]
+;	mov byte[terminal_color], al
+;	pop eax
+;
+;	call handle_key_and_display
+;	jmp .start
+;
+;.load_third_screen:
+;	call save_screen
+;
+;	mov esi, third_screen
+;	mov byte[screen_id], 4
+;
+;	push eax
+;	mov al, byte[third_terminal_color]
+;	mov byte[terminal_color], al
+;	pop eax
+;
+;	call handle_key_and_display
+;	jmp .start
+;
+;.load_fourth_screen:
+;	call save_screen
+;
+;	mov esi, fourth_screen
+;	mov byte[screen_id], 8
+;
+;	push eax
+;	mov al, byte[fourth_terminal_color]
+;	mov byte[terminal_color], al
+;	pop eax
+;
+;	call handle_key_and_display
+;	jmp .start
 
 .press_alt:
 	or byte[keystatus], 00000001b
@@ -317,49 +319,49 @@ keyboard_handler:
 	popa
 	jmp .start
 
-.print_register:
-	pusha
-	call print_registers
-	popa
-	mov al, 0x3E
-	call terminal_putchar
-	jmp .start
-
-.set_mode_print_memory:
-	or byte[keystatus], 00001000b
-	jmp .start
-
-.unset_mode_print_memory:
-	xor byte[keystatus], 00001000b
-	jmp .start
-
-.mode_print_memory:
-	test byte[keystatus], 00001000b
-	jnz .unset_mode_print_memory
-	jmp .set_mode_print_memory
-
-.print_memory:
-	call printk
+;.print_register:
+;	pusha
+;	call print_registers
+;	popa
+;	mov al, 0x3E
+;	call terminal_putchar
+;	jmp .start
+;
+;.set_mode_print_memory:
+;	or byte[keystatus], 00001000b
+;	jmp .start
+;
+;.unset_mode_print_memory:
+;	xor byte[keystatus], 00001000b
+;	jmp .start
+;
+;.mode_print_memory:
+;	test byte[keystatus], 00001000b
+;	jnz .unset_mode_print_memory
+;	jmp .set_mode_print_memory
+;
+;.print_memory:
+;	call printk
 
 .debug_mode:
 	cmp al, 0x02 ; 1 pressed ?
 	je .mode_print_hex
-	cmp al, 0x03 ; 2 pressed ?
-	je .print_register
-	cmp al, 0x04 ; 3 pressed ?
-	je .mode_print_memory
+	;cmp al, 0x03 ; 2 pressed ?
+	;je .print_register
+	;cmp al, 0x04 ; 3 pressed ?
+	;je .mode_print_memory
 	jmp .start
 
-.switch_screen:
-	cmp al, 0x02 ; 1 pressed ?
-	je .load_first_screen
-	cmp al, 0x03 ; 2 pressed ?
-	je .load_second_screen
-	cmp al, 0x04 ; 3 pressed ?
-	je .load_third_screen
-	cmp al, 0x05 ; 4 pressed ?
-	je .load_fourth_screen
-	jmp .start
+;.switch_screen:
+;	cmp al, 0x02 ; 1 pressed ?
+;	je .load_first_screen
+;	cmp al, 0x03 ; 2 pressed ?
+;	je .load_second_screen
+;	cmp al, 0x04 ; 3 pressed ?
+;	je .load_third_screen
+;	cmp al, 0x05 ; 4 pressed ?
+;	je .load_fourth_screen
+;	jmp .start
 
 print_readline:
 	push eax

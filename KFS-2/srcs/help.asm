@@ -1,5 +1,4 @@
-global help
-extern terminal_putchar
+extern terminal_putstr
 
 section .data
 help_text	db "Available commands :", 10
@@ -18,8 +17,12 @@ help_text	db "Available commands :", 10
 			db 0
 
 section .text
+global help
 help:
-	;push
-	
-
+	pusha
+	mov ecx, 0
+	mov edi, help_text
+	call terminal_putstr
+	popa
 	ret
+

@@ -1,6 +1,3 @@
-global kernel_stack_top
-global user_stack_top
-global tss_entry
 extern enter_user_mode
 
 MBALIGN  equ  1 << 0            ; align loaded modules on page boundaries
@@ -17,12 +14,15 @@ align 4
  
 section .bss
 align 16
+global kernel_stack_top
 kernel_stack_bottom:
 	resb 16384 ; 16 KiB
 kernel_stack_top:
+global user_stack_top
 user_stack_bottom:
 	resb 16384 ; 16 KiB
 user_stack_top:
+global tss_entry
 tss_entry:
     resb 104   ; TSS 32 bits
 

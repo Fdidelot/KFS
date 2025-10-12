@@ -130,7 +130,7 @@ enter_user_mode:
 	pushf
 	push USER_CS
 	push user_code_label
-	ret
+	ret ; need iret to really switch ti CLP3
 
 user_code_label:
 ; code en Ring 3
