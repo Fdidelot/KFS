@@ -7,10 +7,11 @@
 	global terminal_putchar
 	global terminal_getidx
 
-	section .data
+	section .rodata
 VGA_WIDTH equ 80
 VGA_HEIGHT equ 25
 
+    section .data
 terminal_color:	db 0
 terminal_cursor_pos:
 terminal_column db 0

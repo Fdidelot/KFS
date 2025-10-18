@@ -13,7 +13,7 @@
 	global first_screen
 	global save_screen
 
-	section .data
+	section .rodata
 ; Colors value
 VGA_COLOR_BLACK equ 0
 VGA_COLOR_BLUE equ 1

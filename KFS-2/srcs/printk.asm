@@ -10,7 +10,7 @@
 	extern terminal_putchar
 	extern keystatus
 
-	section .data
+	section .rodata
 	print_hex_suffix db "0x", 0
 	print_double_dot db ":", 0
 	print_space db " ", 0
