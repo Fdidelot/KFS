@@ -162,6 +162,7 @@ keyboard_handler:
 	cmp byte[readline_index], 79 ; print enter if index != buffer size
 	je .skip
 
+    call print_enter
 	push edi
 	mov edi, readline_buffer
 	call handle_command
