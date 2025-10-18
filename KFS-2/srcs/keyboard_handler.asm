@@ -107,8 +107,7 @@ keyboard_handler:
 	call terminal_putstr
 	mov ecx, kdbus
 	mov byte[is_readline_mode], 1
-	mov al, 0x3E
-	call terminal_putchar
+	call print_cursor
 
 .start:
 	xor eax, eax
@@ -174,17 +173,21 @@ keyboard_handler:
 	pop esi
 	pop edi
 	cmp eax, 0
-	je .start
+	je .command_found
 
 	call print_enter
 
 .skip:
-
 	call print_readline
 	call print_enter
 	mov al, 0x3E
 	call terminal_putchar
 	call clear_readline_buffer
+	jmp .start
+
+.command_found:
+	call clear_readline_buffer
+	call print_cursor
 	jmp .start
 
 .key_release:
@@ -298,3 +301,7 @@ print_enter:
 	call terminal_putchar
 	ret
 
+print_cursor:
+	mov al, 0x3E
+	call terminal_putchar
+	ret
