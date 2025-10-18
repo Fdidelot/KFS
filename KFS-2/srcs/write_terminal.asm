@@ -1,3 +1,5 @@
+    extern clear_terminal
+
 	; Global section
 	global terminal_write_string
 	global terminal_write
