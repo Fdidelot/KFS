@@ -18,10 +18,10 @@
 	print_pipe db "|", 0
 
 PRINTK_START_ADDRESS equ 0x0
-PRINTK_END_ADDRESS equ 0x0F800
+PRINTK_END_ADDRESS equ 0x0A800
 
 	section .text
-; print a char un ascii, replace by dot if non-printable
+; print a char in ascii, replace by dot if non-printable
 print_char:
 	mov eax, edx
 	cmp al, 31
@@ -105,7 +105,7 @@ printk:
 
 .loop:
  	cmp eax, PRINTK_END_ADDRESS ; end address to print
- 	jg .end
+ 	je .end
 	mov edi, eax
 
 	push eax

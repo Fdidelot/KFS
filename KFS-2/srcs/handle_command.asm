@@ -3,31 +3,38 @@ extern ft_strcmp
 extern help
 extern print_registers
 extern reboot
-extern clear
+;extern clear
+extern print_gdt
 
 section .rodata
 help_str db "help", 0
-clear_str db "clear", 0
+;clear_str db "clear", 0
 regs_str db "regs", 0
 reboot_str db "reboot", 0
-halt_str db "halt", 0
+;halt_str db "halt", 0
+gdt_str db "gdt", 0
+;stack_str db "stack", 0
 
 ; Commands str table null terminated
 commands:
 	dd help_str
-	dd clear_str
+	;dd clear_str
 	dd regs_str
 	dd reboot_str
 	;dd halt_str
+	dd gdt_str
+	;dd stack_str
 	dd 0
 
 ; Table of related functions
 handlers:
 	dd help
-	dd clear
+	;dd clear
 	dd print_registers
 	dd reboot
 	;dd halt
+	dd print_gdt
+	;dd print_stack
 	dd 0
 
 section .text
@@ -66,9 +73,8 @@ handle_command:
     pop esi                 ; restore command table
     mov eax, [ebx]          ; eax = fonction associée
     call eax                ; call fonction
-	xor eax, eax
+	xor eax, eax            ; set eax = 0 for return value
 	ret
-    ;jmp .done
 
 .done:
 	mov eax, -1
