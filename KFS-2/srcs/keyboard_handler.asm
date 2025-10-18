@@ -163,7 +163,6 @@ keyboard_handler:
 	cmp byte[readline_index], 79 ; print enter if index != buffer size
 	je .skip
 
-    call print_enter
 	push edi
 	mov edi, readline_buffer
 	push esi
@@ -174,6 +173,8 @@ keyboard_handler:
 	pop ebx
 	pop esi
 	pop edi
+	cmp eax, 0
+	je .start
 
 	call print_enter
 
@@ -291,6 +292,7 @@ clear_readline_buffer:
 	pop ecx
 	ret
 
+global print_enter
 print_enter:
 	mov al, 0xA
 	call terminal_putchar
