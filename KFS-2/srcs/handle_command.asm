@@ -1,3 +1,4 @@
+extern print_enter
 extern ft_strcmp
 extern help
 extern print_registers
@@ -37,7 +38,6 @@ global handle_command
 ;   EDI -> buffer utilisateur (readline_buffer)
 ; -------------------------------------------------
 handle_command:
-    pusha
     mov esi, commands
     mov ebx, handlers
 
@@ -61,12 +61,15 @@ handle_command:
     jmp .loop
 
 .found:
+	call print_enter
     pop ebx                 ; handler table
     pop esi                 ; restore command table
     mov eax, [ebx]          ; eax = fonction associée
     call eax                ; call fonction
-    jmp .done
+	xor eax, eax
+	ret
+    ;jmp .done
 
 .done:
-    popa
+	mov eax, -1
     ret

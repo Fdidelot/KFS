@@ -12,7 +12,7 @@ terminal_putstr:
 	mov ecx, 0
 
 .loop:
-	mov eax, [edi + ecx]
+	mov al, [edi + ecx]
 	cmp al, 0
 	je .end
 	mov al, [edi + ecx]
