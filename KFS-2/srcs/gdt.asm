@@ -7,7 +7,7 @@ extern kfs_mfpd_main
 global enter_user_mode
 
 
-section .data
+section .rodata
 ; Sélecteurs
 KERNEL_CS equ 0x08
 KERNEL_DS equ 0x10

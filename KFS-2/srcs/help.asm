@@ -1,6 +1,6 @@
 extern terminal_putstr
 
-section .data
+section .rodata
 help_text	db "Available commands :", 10
 			db "  help   - Show this help message", 10
 			db "  clear  - clear the screen", 10

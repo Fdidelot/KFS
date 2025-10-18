@@ -6,7 +6,7 @@
 	; Global section
 	global print_registers
 
-	section .data
+	section .rodata
 	print_eax1 db 0xA, "eax(0x", 0
 	print_eax2 db ")", 0xA, 0
 	print_ebx1 db "ebx(0x", 0

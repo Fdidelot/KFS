@@ -4,13 +4,13 @@ extern print_registers
 extern reboot
 ;extern clear
 
+section .rodata
 help_str db "help", 0
 clear_str db "clear", 0
 regs_str db "regs", 0
 reboot_str db "reboot", 0
 halt_str db "halt", 0
 
-section .data
 ; Commands str table null terminated
 commands:
 	dd help_str

@@ -7,7 +7,7 @@
 	; Global section
 	global print_debug
 
-	section .data
+	section .rodata
 	debug_string1 db 0xA, "value(0x", 0
 	debug_string2 db ") char(", 0
 	debug_string3 db ")", 0

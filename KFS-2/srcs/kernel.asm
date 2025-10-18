@@ -11,8 +11,6 @@ BITS 32
 	global kfs_mfpd_main
 	global handle_key_and_display
 
-	section .data
-
 	section .text
 ; start of the kernel, set colors, add headers to the terms
 kfs_mfpd_main:
