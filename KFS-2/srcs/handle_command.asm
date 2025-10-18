@@ -2,7 +2,7 @@ extern ft_strcmp
 extern help
 extern print_registers
 extern reboot
-;extern clear
+extern clear
 
 section .rodata
 help_str db "help", 0
@@ -14,7 +14,7 @@ halt_str db "halt", 0
 ; Commands str table null terminated
 commands:
 	dd help_str
-	;dd clear_str
+	dd clear_str
 	dd regs_str
 	dd reboot_str
 	;dd halt_str
@@ -23,7 +23,7 @@ commands:
 ; Table of related functions
 handlers:
 	dd help
-	;dd clear
+	dd clear
 	dd print_registers
 	dd reboot
 	;dd halt
