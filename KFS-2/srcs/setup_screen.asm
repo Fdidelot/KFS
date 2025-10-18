@@ -6,17 +6,11 @@
 
     ; Global section
 	global first_terminal_color
-	global second_terminal_color
-	global third_terminal_color
-	global fourth_terminal_color
 	global set_terminal_colors
 	global set_cursor_shape
 	global screen_id
 	global add_headers
 	global first_screen
-	global second_screen
-	global third_screen
-	global fourth_screen
 	global save_screen
 
 	section .data
@@ -52,19 +46,13 @@ header_ft db 26 dup(" "), "        ,--,               ", 27 dup(" "), \
 	     26 dup(" "), "      '  ; | ./__;      :  ", 27 dup(" "), \
 	     26 dup(" "), "      |  : ; |   :    .'   ", 27 dup(" "), \
 	     26 dup(" "), "      '  ,/  ;   | .'      ", 27 dup(" "), \
-	     26 dup(" "), "      '--' ", 258, " `---'         ", 27 dup(" "), 0
+	     26 dup(" "), "      '--' ", 2, " `---'         ", 27 dup(" "), 0
 
 ; terminals colors
 first_terminal_color:	 db 0
-second_terminal_color:	 db 0
-third_terminal_color:	 db 0
-fourth_terminal_color:	 db 0
 
 ; set all screen at VGA_WIDTH*VGA_HEIGHT = 2000, the size of the screen
 first_screen:	db 2000 dup(0), 0
-second_screen:	db 2000 dup(0), 0
-third_screen:	db 2000 dup(0), 0
-fourth_screen:	db 2000 dup(0), 0
 
 screen_id db 1
 
@@ -94,27 +82,6 @@ set_terminal_colors:
 	mov [first_terminal_color], dl
 	mov [terminal_color], dl ; set terminal color for the first time
 
-	mov dh, VGA_COLOR_LIGHT_BLUE
-	mov dl, VGA_COLOR_BLACK
-
-	shl dl, 4
-	or dl, dh
-	mov [second_terminal_color], dl
-
-	mov dh, VGA_COLOR_LIGHT_GREEN
-	mov dl, VGA_COLOR_BLACK
-
-	shl dl, 4
-	or dl, dh
-	mov [third_terminal_color], dl
-
-	mov dh, VGA_COLOR_LIGHT_MAGENTA
-	mov dl, VGA_COLOR_BLACK
-
-	shl dl, 4
-	or dl, dh
-	mov [fourth_terminal_color], dl
-
 	pop edx
 
 ;call only at startup and setup header for all screen
@@ -126,9 +93,6 @@ add_headers:
 .loop:
 	mov cl, byte[esi + edx]
 	mov byte[first_screen + edx], cl
-	mov byte[second_screen + edx], cl
-	mov byte[third_screen + edx], cl
-	mov byte[fourth_screen + edx], cl
 
 	cmp byte[esi + edx], 0
 	je .end
