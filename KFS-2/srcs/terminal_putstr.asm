@@ -13,7 +13,7 @@ terminal_putstr:
 
 .loop:
 	mov eax, [edi + ecx]
-	cmp eax, 0
+	cmp al, 0
 	je .end
 	mov al, [edi + ecx]
 	call terminal_putchar
