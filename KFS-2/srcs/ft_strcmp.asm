@@ -8,13 +8,15 @@ ft_strcmp:
 .loop:
 	mov dl, byte [edi + eax]
 	mov cl, byte [esi + eax]
-	inc eax
 	cmp dl, 0x0
 	je .end
 	cmp cl, 0x0
 	je .end
 	cmp dl, cl
-	je .loop
+	jne .end
+
+	inc eax
+	jmp .loop
 
 .end:
 	sub dl, cl

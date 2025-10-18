@@ -48,7 +48,8 @@ kdbus:
 	db 0 ; F12 Key
 	db 0 ; All other keys are undefined
 
-shift_kdbus db 0,  0, "!", "@", "#", "$", "%", "^", "&", "*", \
+shift_kdbus:
+	db 0,  0, "!", "@", "#", "$", "%", "^", "&", "*", \
 	"(", ")", "_", "+", 0, \
 	0, \
 	"Q", "W", "E", "R", \
@@ -162,9 +163,16 @@ keyboard_handler:
 	cmp byte[readline_index], 79 ; print enter if index != buffer size
 	je .skip
 
+	call print_enter
 	push edi
 	mov edi, readline_buffer
+	push esi
+	push ebx
+	push ecx
 	call handle_command
+	pop ecx
+	pop ebx
+	pop esi
 	pop edi
 
 	call print_enter

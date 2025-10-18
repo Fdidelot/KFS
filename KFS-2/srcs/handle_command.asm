@@ -37,7 +37,6 @@ global handle_command
 ;   EDI -> buffer utilisateur (readline_buffer)
 ; -------------------------------------------------
 handle_command:
-    pusha
     mov esi, commands
     mov ebx, handlers
 
@@ -68,5 +67,4 @@ handle_command:
     jmp .done
 
 .done:
-    popa
     ret
