@@ -19,7 +19,8 @@ SRCS =	boot.asm \
 		terminal_putstr.asm \
 		handle_command.asm \
 		help.asm \
-		reboot.asm
+		reboot.asm \
+		clear.asm
 
 NA = nasm
 NAFL = -felf32
