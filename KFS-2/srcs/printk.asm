@@ -152,5 +152,4 @@ printk:
 	jmp .loop
 
 .end:
-	;pop eax
 	ret

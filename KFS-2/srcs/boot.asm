@@ -1,4 +1,6 @@
 extern enter_user_mode
+global kernel_stack_bottom
+global kernel_stack_top
 
 MBALIGN  equ  1 << 0            ; align loaded modules on page boundaries
 MEMINFO  equ  1 << 1            ; provide memory map
@@ -33,7 +35,8 @@ global _start:function (_start.end - _start)
 _start:
 	cli
 
-	mov esp, kernel_stack_top
+    mov esp, kernel_stack_top
+
 	extern setup_gdt
 	call setup_gdt
 	;call enter_user_mode

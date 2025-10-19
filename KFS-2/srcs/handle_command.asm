@@ -5,6 +5,7 @@ extern print_registers
 extern reboot
 extern clear
 extern print_gdt
+extern halt
 extern print_stack
 
 section .rodata
@@ -12,7 +13,7 @@ help_str db "help", 0
 clear_str db "clear", 0
 regs_str db "regs", 0
 reboot_str db "reboot", 0
-;halt_str db "halt", 0
+halt_str db "halt", 0
 gdt_str db "gdt", 0
 stack_str db "stack", 0
 
@@ -22,7 +23,7 @@ commands:
 	dd clear_str
 	dd regs_str
 	dd reboot_str
-	;dd halt_str
+	dd halt_str
 	dd gdt_str
 	dd stack_str
 	dd 0
@@ -33,7 +34,7 @@ handlers:
 	dd clear
 	dd print_registers
 	dd reboot
-	;dd halt
+	dd halt
 	dd print_gdt
 	dd print_stack
 	dd 0
