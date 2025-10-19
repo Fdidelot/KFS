@@ -22,7 +22,8 @@ SRCS =	boot.asm \
 		reboot.asm \
 		print_gdt.asm \
 		clear.asm \
-		halt.asm
+		halt.asm \
+		print_stack.asm
 
 NA = nasm
 NAFL = -felf32
