@@ -8,7 +8,7 @@ global enter_user_mode
 
 
 section .rodata
-; Sélecteurs
+; Selectors
 KERNEL_CS equ 0x08
 KERNEL_DS equ 0x10
 KERNEL_SS equ 0x18
@@ -20,18 +20,18 @@ TSS_SEL   equ 0x38
 section .text
 setup_gdt:
 
-    lgdt [gdtr]         ; Charger GDTR
+    lgdt [gdtr]         ; Load GDTR
 
-    ; Activer PE
+    ; Activate PE
     mov eax, cr0
     or  eax, 1
     mov cr0, eax
 
-    ; Far jump pour charger CS
+    ; Far jump to load CS
     jmp KERNEL_CS:protected_gdt_entry
 
 protected_gdt_entry:
-    ; Recharger les autres registres
+    ; Reload other registres
     mov ax, KERNEL_DS
     mov ds, ax
     mov es, ax
@@ -49,7 +49,7 @@ protected_gdt_entry:
 section .gdt
 align 8
 gdt_table:
-    ; Descripteur NULL (8 bytes)
+    ; Descriptor NULL (8 bytes)
     dq 0
 
     ; Kernel Code segment (base=0, limit=4GiB, DPL=0)  access=0x9A, flags=0xCF

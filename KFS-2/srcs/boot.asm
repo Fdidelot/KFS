@@ -5,16 +5,17 @@ MEMINFO  equ  1 << 1            ; provide memory map
 MBFLAGS  equ  MBALIGN | MEMINFO ; this is the Multiboot 'flag' field
 MAGIC    equ  0x1BADB002        ; 'magic number' lets bootloader find the header
 CHECKSUM equ -(MAGIC + MBFLAGS)   ; checksum of above, to prove we are multiboot
- 
+
 section .multiboot
 align 4
 	dd MAGIC
 	dd MBFLAGS
 	dd CHECKSUM
- 
+
 section .bss
 align 16
 global kernel_stack_top
+global kernel_stack_bottom
 kernel_stack_bottom:
 	resb 16384 ; 16 KiB
 kernel_stack_top:
@@ -32,9 +33,9 @@ global _start:function (_start.end - _start)
 _start:
 	cli
 
+	mov esp, kernel_stack_top
 	extern setup_gdt
 	call setup_gdt
-	;Do a command to switch in user_mode
 	;call enter_user_mode
 
 	extern kfs_mfpd_main

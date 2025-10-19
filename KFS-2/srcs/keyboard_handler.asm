@@ -4,10 +4,9 @@ extern terminal_color
 extern terminal_putchar
 extern terminal_putstr
 extern print_debug
-extern print_registers
-extern printk
 extern handle_command
-extern help
+extern terminal_row
+extern set_cursor_pos
 
 section .rodata
 kdbus:
@@ -116,10 +115,10 @@ keyboard_handler:
 	jz .start
 	in al, 0x60 ; read input
 
+	cmp al, 0x0E ; backspace pressed?
+	je .handle_backspace
 	cmp al, 0x2A ; shift pressed?
 	je .press_shift
-	;cmp al, 0x1D ; CTRL pressed?
-	;je .press_ctrl
 	cmp al, 0x38 ; ALT pressed?
 	je .press_alt
 	cmp al, 0x80 ; check release
@@ -195,8 +194,19 @@ keyboard_handler:
 	je .release_alt
 	cmp al, 0xAA ; break code for shift, release shift?
 	je .release_shift
-	;cmp al, 0x9D ; break code for ctrl, release ctrl?
-	;je .release_ctrl
+	jmp .start
+
+.handle_backspace:
+	cmp byte[readline_index], 0
+	je .start
+	dec byte[readline_index]
+	mov bl, [readline_index] ; put index in ebx
+	mov byte[readline_buffer + ebx], 0 ; add char to buffer + index
+	dec byte[terminal_row]
+	mov al, 0x0
+	call terminal_putchar
+	dec byte[terminal_row]
+	call set_cursor_pos
 	jmp .start
 
 .press_alt:
@@ -215,16 +225,6 @@ keyboard_handler:
 
 .release_shift:
 	mov ecx, kdbus
-	jmp .start
-
-.press_ctrl:
-	or byte[keystatus], 00000010b
-	mov byte[is_readline_mode], 0
-	jmp .start
-
-.release_ctrl:
-	xor byte[keystatus], 00000010b
-	mov byte[is_readline_mode], 1
 	jmp .start
 
 .set_mode_print_hex:
@@ -305,3 +305,4 @@ print_cursor:
 	mov al, 0x3E
 	call terminal_putchar
 	ret
+

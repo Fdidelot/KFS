@@ -14,13 +14,13 @@ SRCS =	boot.asm \
 		write_terminal.asm \
 		gdt.asm \
 		printk.asm \
-		readline.asm \
 		ft_strcmp.asm \
 		terminal_putstr.asm \
 		handle_command.asm \
 		help.asm \
 		reboot.asm \
 		print_gdt.asm \
+		print_stack.asm \
 		clear.asm
 
 NA = nasm

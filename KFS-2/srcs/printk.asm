@@ -73,7 +73,7 @@ print_byte:
 	pop edx
 	ret
 
-; print 16 bytes in hexa, 2 by 2 
+; print 16 bytes in hexa, 2 by 2
 print_bytes:
 	xor ecx, ecx
 .loop:
@@ -152,5 +152,5 @@ printk:
 	jmp .loop
 
 .end:
-	pop eax
+	;pop eax
 	ret

@@ -8,6 +8,7 @@
 	global terminal_row
 	global terminal_putchar
 	global terminal_getidx
+	global set_cursor_pos
 
 	section .rodata
 VGA_WIDTH equ 80
@@ -122,7 +123,7 @@ terminal_putchar:
 	dec dl
 
 .cursor_moved:
-	; Store new cursor position 
+	; Store new cursor position
 	mov [terminal_cursor_pos], dx
 	call set_cursor_pos
 

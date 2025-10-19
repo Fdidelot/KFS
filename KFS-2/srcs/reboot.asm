@@ -1,13 +1,13 @@
 global reboot
 
 reboot:
-	in   al, 0x64           ; Lire le status du contrôleur clavier
-	test al, 0x02           ; Bit 1 = buffer d’entrée plein ?
-	jnz  reboot  ; Si oui, attendre qu’il soit vide
+	in   al, 0x64           ; Read keyboard controller status
+	test al, 0x02           ; Bit 1 = buffer full ?
+	jnz  reboot             ; If yes, wait until it is empty
 
-	mov  al, 0xFE           ; Commande "pulse CPU reset line"
-	out  0x64, al           ; Envoyer au contrôleur clavier
+	mov  al, 0xFE           ; Command "pulse CPU reset line"
+	out  0x64, al           ; Send to keyboard controller
 
 .hang:
-	hlt                     ; Si pour une raison quelconque le reset échoue
+	hlt                     ; Wait if for some reason the reset fails
 	jmp  .hang
